@@ -1,0 +1,173 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* PetManager Design System - Identidad Visual Específica */
+
+@layer base {
+  :root {
+    /* PetManager Brand Colors */
+    --pet-primary: 104 44% 55%;        /* #7FB069 - Verde principal */
+    --pet-secondary: 37 39% 91%;       /* #F2E9DC - Beige claro */  
+    --pet-accent: 200 100% 40%;        /* #0099CC - Azul acento */
+    --pet-background: 42 33% 98%;      /* #FCFBF9 - Fondo crema */
+    
+    /* Text Colors */
+    --pet-text-primary: 0 0% 18%;      /* #2E2E2E - Texto principal */
+    --pet-text-secondary: 0 0% 45%;    /* #737171 - Texto secundario */
+    
+    /* Semantic Mapping */
+    --background: var(--pet-background);
+    --foreground: var(--pet-text-primary);
+    
+    --card: var(--pet-background);
+    --card-foreground: var(--pet-text-primary);
+    
+    --popover: var(--pet-background);
+    --popover-foreground: var(--pet-text-primary);
+    
+    --primary: var(--pet-primary);
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: var(--pet-secondary);
+    --secondary-foreground: var(--pet-text-primary);
+    
+    --muted: var(--pet-secondary);
+    --muted-foreground: var(--pet-text-secondary);
+    
+    --accent: var(--pet-accent);
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 37 25% 85%;
+    --input: 37 25% 90%;
+    --ring: var(--pet-primary);
+    
+    --radius: 0.5rem;
+    
+    /* Custom Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--pet-primary)), hsl(var(--pet-accent)));
+    --gradient-hero: linear-gradient(135deg, hsl(var(--pet-primary) / 0.9), hsl(var(--pet-accent) / 0.8));
+    --gradient-card: linear-gradient(145deg, hsl(var(--pet-background)), hsl(var(--pet-secondary)));
+    
+    /* Shadows */
+    --shadow-card: 0 4px 6px -1px hsl(var(--pet-primary) / 0.1);
+    --shadow-elevated: 0 10px 15px -3px hsl(var(--pet-primary) / 0.1), 0 4px 6px -2px hsl(var(--pet-primary) / 0.05);
+    --shadow-hero: 0 20px 25px -5px hsl(var(--pet-primary) / 0.2);
+    
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    /* Sidebar Styles */
+    --sidebar-background: var(--pet-background);
+    --sidebar-foreground: var(--pet-text-primary);
+    --sidebar-primary: var(--pet-primary);
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: var(--pet-secondary);
+    --sidebar-accent-foreground: var(--pet-text-primary);
+    --sidebar-border: 37 25% 85%;
+    --sidebar-ring: var(--pet-primary);
+  }
+
+  .dark {
+    /* PetManager Dark Mode Brand Colors */
+    --pet-primary: 142 40% 63%;        /* #98C379 - Verde brillante */
+    --pet-secondary: 30 7% 23%;        /* #3C3A35 - Beige oscuro */  
+    --pet-accent: 195 100% 60%;        /* #33BFFF - Azul luminoso */
+    --pet-background: 0 0% 12%;        /* #1E1E1E - Gris carbón */
+    
+    /* Text Colors */
+    --pet-text-primary: 0 0% 92%;      /* #EAEAEA - Blanco cálido */
+    --pet-text-secondary: 0 0% 69%;    /* #B0B0B0 - Gris claro */
+    
+    /* Semantic Mapping */
+    --background: var(--pet-background);
+    --foreground: var(--pet-text-primary);
+    
+    --card: 0 0% 17%;                  /* #2B2B2B - Fondo alternativo */
+    --card-foreground: var(--pet-text-primary);
+    
+    --popover: 0 0% 17%;
+    --popover-foreground: var(--pet-text-primary);
+    
+    --primary: var(--pet-primary);
+    --primary-foreground: 0 0% 0%;
+    
+    --secondary: var(--pet-secondary);
+    --secondary-foreground: var(--pet-text-primary);
+    
+    --muted: var(--pet-secondary);
+    --muted-foreground: var(--pet-text-secondary);
+    
+    --accent: var(--pet-accent);
+    --accent-foreground: 0 0% 0%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 0 0% 23%;                /* #3A3A3A - Bordes */
+    --input: 0 0% 23%;
+    --ring: var(--pet-primary);
+    
+    /* Sidebar Styles */
+    --sidebar-background: var(--pet-background);
+    --sidebar-foreground: var(--pet-text-primary);
+    --sidebar-primary: var(--pet-primary);
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 17%;
+    --sidebar-accent-foreground: var(--pet-text-primary);
+    --sidebar-border: 0 0% 23%;
+    --sidebar-ring: var(--pet-primary);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 700;
+  }
+  
+  h1 { @apply text-4xl; }
+  h2 { @apply text-3xl; }
+  h3 { @apply text-2xl; }
+}
+
+@layer components {
+  /* PetManager Component Styles */
+  .pet-card {
+    @apply bg-gradient-to-br from-background to-secondary border border-border rounded-lg;
+    box-shadow: var(--shadow-card);
+    transition: var(--transition-smooth);
+  }
+  
+  .pet-card-hover {
+    @apply pet-card hover:shadow-lg hover:-translate-y-1;
+    box-shadow: var(--shadow-elevated);
+  }
+  
+  .pet-gradient-text {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .pet-hero-section {
+    background: var(--gradient-hero);
+    box-shadow: var(--shadow-hero);
+  }
+}

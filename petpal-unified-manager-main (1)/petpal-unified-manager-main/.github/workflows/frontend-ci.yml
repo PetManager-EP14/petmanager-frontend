@@ -1,0 +1,61 @@
+name: Frontend CI/CD
+
+on:
+  push:
+    branches: ["main", "trunk"]
+  pull_request:
+    branches: ["main", "trunk"]
+
+jobs:
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 2. Setup Node.js v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 3. Install dependencies
+        run: npm ci
+
+      - name: 4. Run linter
+        run: npm run lint
+
+  build:
+    name: Build Project
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 2. Setup Node.js v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 3. Install dependencies
+        run: npm ci
+
+      - name: 4. Build project
+        run: npm run build
+
+  deploy_vercel:
+    name: Deploy to Vercel
+    needs: [build, lint]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/trunk'
+    steps:
+      - name: 1. Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 2. Deploy to Vercel
+        uses: amondnet/vercel-action@v20
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}       
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}     
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }} 
+          vercel-args: '--prod'
