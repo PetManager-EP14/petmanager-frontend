@@ -15,22 +15,32 @@ const authHeader = () => {
  */
 export const getPurchases = async () => {
   try {
-    const response = await axios.get<any[]>(API_URL, {
-      headers: {
-        ...authHeader(),
-      },
+    const response = await axios.get(API_URL, {
+      headers: { ...authHeader() },
     });
 
-    // Mapeo del backend → frontend
-    const purchases = response.data.map((p: any) => ({
-      id: p.id,
-      product: p.productName || p.product || "",
-      supplier: p.supplierName || p.supplier || "",
-      quantity: p.quantity || 0,
-      unitPrice: Number(p.price ?? p.unitPrice ?? 0),
-      total: Number(p.total ?? 0),
-      date: p.date || "",
-    }));
+    // Adaptamos los datos al formato que la tabla espera
+    const purchases = response.data.map((p: any) => {
+      // Si hay detalles, tomamos el primero (normalmente hay uno por compra)
+      const detail = Array.isArray(p.details) && p.details.length > 0 ? p.details[0] : null;
+
+      const productName = detail?.productName ?? "Sin producto";
+      const supplierName = p.supplierName ?? "Sin proveedor";
+      const quantity = Number(detail?.amount ?? 0);
+      const unitPrice = Number(detail?.priceShopping ?? 0);
+      const total = Number(p.total ?? unitPrice * quantity);
+      const date = p.date ? new Date(p.date).toISOString().split("T")[0] : "";
+
+      return {
+        id: p.id,
+        product: productName,
+        supplier: supplierName,
+        quantity,
+        unitPrice,
+        total,
+        date,
+      };
+    });
 
     return purchases;
   } catch (error: any) {
