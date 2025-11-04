@@ -14,42 +14,42 @@ import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 
 interface Purchase {
-  id: string;
-  product: string;
+  id: number;
+  productName: string;
+  supplierName: string;
   quantity: number;
-  unitPrice: number;
+  price: number;
   total: number;
   date: string;
-  supplier: string;
 }
 
 const mockRecentPurchases: Purchase[] = [
   {
-    id: "1",
-    product: "Alimento Premium para Perro Royal Canin 15kg",
+    id: 1,
+    productName: "Alimento Premium para Perro Royal Canin 15kg",
     quantity: 12,
-    unitPrice: 180000,
+    price: 180000,
     total: 2160000,
     date: "2024-01-15",
-    supplier: "Pet Supply Co."
+    supplierName: "Pet Supply Co."
   },
   {
-    id: "2",
-    product: "Juguete Kong Classic Mediano",
+    id: 2,
+    productName: "Juguete Kong Classic Mediano",
     quantity: 24,
-    unitPrice: 45000,
+    price: 45000,
     total: 1080000,
     date: "2024-01-12",
-    supplier: "Mascotas Premium"
+    supplierName: "Mascotas Premium"
   },
   {
-    id: "3",
-    product: "Collar LED Recargable para Perro",
+    id: 3,
+    productName: "Collar LED Recargable para Perro",
     quantity: 18,
-    unitPrice: 35000,
+    price: 35000,
     total: 630000,
     date: "2024-01-10",
-    supplier: "Distribuidora Animal Care"
+    supplierName: "Distribuidora Animal Care"
   }
 ];
 
@@ -302,7 +302,7 @@ export default function CreatePurchase() {
                       {mockRecentPurchases.map((purchase) => (
                         <TableRow key={purchase.id} className="hover:bg-muted/50 transition-colors">
                           <TableCell className="font-medium text-foreground">
-                            {purchase.product}
+                            {purchase.productName}
                           </TableCell>
                           <TableCell className="text-muted-foreground">
                             {purchase.quantity}
