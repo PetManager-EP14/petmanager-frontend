@@ -58,7 +58,7 @@ export default function ConsultPurchases() {
   useEffect(() => {
     const fetchPurchases = async () => {
       try {
-        const data = await getPurchases();
+        const data = (await getPurchases()) as Purchase[];
         setPurchases(data);
         setFilteredPurchases(data);
       } catch (error) {
