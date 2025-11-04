@@ -54,7 +54,7 @@ export default function ConsultPurchases() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  // 🔹 Obtener datos reales del backend
+  // Obtener datos reales del backend
   useEffect(() => {
     const fetchPurchases = async () => {
       try {
@@ -74,7 +74,7 @@ export default function ConsultPurchases() {
     fetchPurchases();
   }, []);
 
-  // 🔹 Funciones de utilidad
+  // Funciones de utilidad
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat("es-CO", {
       style: "currency",
@@ -97,7 +97,7 @@ export default function ConsultPurchases() {
     setFilteredPurchases(purchases);
   };
 
-  // 🔹 Editar compra
+  // Editar compra
   const handleEditClick = (purchase: Purchase) => {
     setSelectedPurchase(purchase);
     setEditForm(purchase);
@@ -138,7 +138,7 @@ export default function ConsultPurchases() {
     }
   };
 
-  // 🔹 Eliminar compra
+  // Eliminar compra
   const handleDeleteClick = (purchase: Purchase) => {
     setSelectedPurchase(purchase);
     setDeleteDialogOpen(true);
@@ -178,7 +178,7 @@ export default function ConsultPurchases() {
     );
   }
 
-  // 🔹 Render principal
+  // Render principal
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 p-4 md:p-6">
       <div className="mx-auto max-w-7xl space-y-6">
