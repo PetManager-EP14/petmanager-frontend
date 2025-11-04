@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Calendar } from "@/components/ui/calendar";
@@ -13,117 +12,118 @@ import { CalendarIcon, Search, Filter, Pencil, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
 
-interface Purchase {
+interface Sale {
   id: string;
   product: string;
   quantity: number;
   unitPrice: number;
   total: number;
   date: string;
-  supplier: string;
+  customer: string;
 }
 
-const mockPurchases: Purchase[] = [
+const mockSales: Sale[] = [
   {
     id: "1",
     product: "Alimento Premium para Perro Royal Canin 15kg",
-    quantity: 12,
-    unitPrice: 180000,
-    total: 2160000,
+    quantity: 2,
+    unitPrice: 250000,
+    total: 500000,
     date: "2024-01-15",
-    supplier: "Pet Supply Co."
+    customer: "Carlos Rodríguez"
   },
   {
     id: "2",
     product: "Juguete Kong Classic Mediano",
-    quantity: 24,
-    unitPrice: 45000,
-    total: 1080000,
-    date: "2024-01-12",
-    supplier: "Mascotas Premium"
+    quantity: 1,
+    unitPrice: 65000,
+    total: 65000,
+    date: "2024-01-14",
+    customer: "María González"
   },
   {
     id: "3",
     product: "Collar LED Recargable para Perro",
-    quantity: 18,
-    unitPrice: 35000,
-    total: 630000,
-    date: "2024-01-10",
-    supplier: "Distribuidora Animal Care"
+    quantity: 1,
+    unitPrice: 55000,
+    total: 55000,
+    date: "2024-01-13",
+    customer: "Jorge Martínez"
   },
   {
     id: "4",
     product: "Arena Sanitaria para Gato Fresh Step 20kg",
-    quantity: 8,
-    unitPrice: 75000,
-    total: 600000,
-    date: "2024-01-08",
-    supplier: "Pet Supply Co."
+    quantity: 3,
+    unitPrice: 95000,
+    total: 285000,
+    date: "2024-01-12",
+    customer: "Ana Pérez"
   },
   {
     id: "5",
     product: "Correa Retráctil Flexi 5m",
-    quantity: 15,
-    unitPrice: 85000,
-    total: 1275000,
-    date: "2024-01-05",
-    supplier: "VetSupplies"
+    quantity: 1,
+    unitPrice: 120000,
+    total: 120000,
+    date: "2024-01-11",
+    customer: "Luis Torres"
   },
   {
     id: "6",
     product: "Snacks Dentales para Perro Pedigree",
-    quantity: 30,
-    unitPrice: 25000,
-    total: 750000,
-    date: "2024-01-03",
-    supplier: "Mascotas Premium"
+    quantity: 5,
+    unitPrice: 35000,
+    total: 175000,
+    date: "2024-01-10",
+    customer: "Carlos Rodríguez"
   },
   {
     id: "7",
     product: "Transportadora Plástica Grande",
-    quantity: 6,
-    unitPrice: 120000,
-    total: 720000,
-    date: "2023-12-28",
-    supplier: "PetWorld Mayorista"
+    quantity: 1,
+    unitPrice: 180000,
+    total: 180000,
+    date: "2024-01-08",
+    customer: "María González"
   },
   {
     id: "8",
     product: "Vitaminas para Gato Whiskas",
-    quantity: 20,
-    unitPrice: 28000,
-    total: 560000,
-    date: "2023-12-25",
-    supplier: "Distribuidora Animal Care"
+    quantity: 2,
+    unitPrice: 42000,
+    total: 84000,
+    date: "2024-01-07",
+    customer: "Jorge Martínez"
   }
 ];
 
-const suppliers = [
-  "Pet Supply Co.",
-  "Mascotas Premium", 
-  "Distribuidora Animal Care",
-  "VetSupplies",
-  "PetWorld Mayorista"
+const customers = [
+  "Carlos Rodríguez",
+  "María González", 
+  "Jorge Martínez",
+  "Ana Pérez",
+  "Luis Torres"
 ];
 
-export default function ConsultPurchases() {
-  const [purchases, setPurchases] = useState<Purchase[]>(mockPurchases);
-  const [filteredPurchases, setFilteredPurchases] = useState<Purchase[]>(mockPurchases);
-  const [selectedSupplier, setSelectedSupplier] = useState<string>("");
+export default function ConsultSales() {
+  const [sales, setSales] = useState<Sale[]>(mockSales);
+  const [filteredSales, setFilteredSales] = useState<Sale[]>(mockSales);
+  const [selectedCustomer, setSelectedCustomer] = useState<string>("");
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedPurchase, setSelectedPurchase] = useState<Purchase | null>(null);
-  const [editForm, setEditForm] = useState<Purchase>({
+  const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
+  const [editForm, setEditForm] = useState<Sale>({
     id: "",
     product: "",
     quantity: 0,
     unitPrice: 0,
     total: 0,
     date: "",
-    supplier: ""
+    customer: ""
   });
   const { toast } = useToast();
 
@@ -136,84 +136,84 @@ export default function ConsultPurchases() {
   };
 
   const handleFilter = () => {
-    let filtered = [...purchases];
+    let filtered = [...sales];
 
-    // Filter by supplier
-    if (selectedSupplier) {
-      filtered = filtered.filter(purchase => purchase.supplier === selectedSupplier);
+    // Filter by customer
+    if (selectedCustomer) {
+      filtered = filtered.filter(sale => sale.customer === selectedCustomer);
     }
 
     // Filter by date range
     if (startDate) {
-      filtered = filtered.filter(purchase => new Date(purchase.date) >= startDate);
+      filtered = filtered.filter(sale => new Date(sale.date) >= startDate);
     }
     
     if (endDate) {
-      filtered = filtered.filter(purchase => new Date(purchase.date) <= endDate);
+      filtered = filtered.filter(sale => new Date(sale.date) <= endDate);
     }
 
-    setFilteredPurchases(filtered);
+    setFilteredSales(filtered);
   };
 
   const clearFilters = () => {
-    setSelectedSupplier("");
+    setSelectedCustomer("");
     setStartDate(undefined);
     setEndDate(undefined);
-    setFilteredPurchases(purchases);
+    setFilteredSales(sales);
   };
 
-  const handleEditClick = (purchase: Purchase) => {
-    setSelectedPurchase(purchase);
-    setEditForm(purchase);
+  const handleEditClick = (sale: Sale) => {
+    setSelectedSale(sale);
+    setEditForm(sale);
     setEditDialogOpen(true);
   };
 
-  const handleDeleteClick = (purchase: Purchase) => {
-    setSelectedPurchase(purchase);
+  const handleDeleteClick = (sale: Sale) => {
+    setSelectedSale(sale);
     setDeleteDialogOpen(true);
   };
 
   const handleDeleteConfirm = () => {
-    if (selectedPurchase) {
-      const updatedPurchases = purchases.filter(p => p.id !== selectedPurchase.id);
-      setPurchases(updatedPurchases);
+    if (selectedSale) {
+      const updatedSales = sales.filter(s => s.id !== selectedSale.id);
+      setSales(updatedSales);
       
-      // Update filtered purchases
-      const updatedFiltered = filteredPurchases.filter(p => p.id !== selectedPurchase.id);
-      setFilteredPurchases(updatedFiltered);
+      // Update filtered sales
+      const updatedFiltered = filteredSales.filter(s => s.id !== selectedSale.id);
+      setFilteredSales(updatedFiltered);
       
       toast({
-        title: "Compra eliminada",
-        description: "La compra ha sido eliminada exitosamente.",
+        title: "Venta eliminada",
+        description: "La venta ha sido eliminada exitosamente.",
       });
       setDeleteDialogOpen(false);
-      setSelectedPurchase(null);
+      setSelectedSale(null);
     }
   };
 
   const handleEditSubmit = () => {
-    if (selectedPurchase) {
-      const updatedPurchases = purchases.map(p => 
-        p.id === selectedPurchase.id ? editForm : p
+    if (selectedSale) {
+      const updatedSales = sales.map(s => 
+        s.id === selectedSale.id ? editForm : s
       );
-      setPurchases(updatedPurchases);
+      setSales(updatedSales);
       
-      // Update filtered purchases
-      const updatedFiltered = filteredPurchases.map(p => 
-        p.id === selectedPurchase.id ? editForm : p
+      // Update filtered sales
+      const updatedFiltered = filteredSales.map(s => 
+        s.id === selectedSale.id ? editForm : s
       );
-      setFilteredPurchases(updatedFiltered);
+      setFilteredSales(updatedFiltered);
       
       toast({
-        title: "Compra actualizada",
-        description: "La compra ha sido actualizada exitosamente.",
+        title: "Venta actualizada",
+        description: "La venta ha sido actualizada exitosamente.",
       });
       setEditDialogOpen(false);
-      setSelectedPurchase(null);
+      setSelectedSale(null);
     }
   };
 
-  const handleEditFormChange = (field: keyof Purchase, value: string | number) => {
+  const handleEditFormChange = (field: keyof Sale, value: string | number) => {
     const updatedForm = { ...editForm, [field]: value };
     
     // Auto-calculate total when quantity or unitPrice changes
@@ -224,7 +224,7 @@ export default function ConsultPurchases() {
     setEditForm(updatedForm);
   };
 
-  const totalAmount = filteredPurchases.reduce((sum, purchase) => sum + purchase.total, 0);
+  const totalAmount = filteredSales.reduce((sum, sale) => sum + sale.total, 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 p-4 md:p-6">
@@ -232,10 +232,10 @@ export default function ConsultPurchases() {
         {/* Header */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">
-            Consultar Compras
+            Consultar Ventas
           </h1>
           <p className="text-muted-foreground text-sm md:text-base max-w-2xl mx-auto">
-            Filtra las compras por proveedor o fecha para consultar el historial de compras de tu tienda de mascotas
+            Filtra las ventas por cliente o fecha para consultar el historial de ventas de tu tienda de mascotas
           </p>
         </div>
 
@@ -249,17 +249,17 @@ export default function ConsultPurchases() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Supplier Filter */}
+              {/* Customer Filter */}
               <div className="space-y-2">
-                <Label htmlFor="supplier">Proveedor</Label>
-                <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
+                <Label htmlFor="customer">Cliente</Label>
+                <Select value={selectedCustomer} onValueChange={setSelectedCustomer}>
                   <SelectTrigger className="h-12 border-border/50 focus:border-primary rounded-lg">
-                    <SelectValue placeholder="Seleccionar proveedor" />
+                    <SelectValue placeholder="Seleccionar cliente" />
                   </SelectTrigger>
                   <SelectContent>
-                    {suppliers.map((supplier) => (
-                      <SelectItem key={supplier} value={supplier}>
-                        {supplier}
+                    {customers.map((customer) => (
+                      <SelectItem key={customer} value={customer}>
+                        {customer}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -348,8 +348,8 @@ export default function ConsultPurchases() {
           <Card className="border-border/50 shadow-md bg-card/80 backdrop-blur-sm">
             <CardContent className="p-4">
               <div className="text-center">
-                <p className="text-2xl font-bold text-primary">{filteredPurchases.length}</p>
-                <p className="text-sm text-muted-foreground">Compras encontradas</p>
+                <p className="text-2xl font-bold text-primary">{filteredSales.length}</p>
+                <p className="text-sm text-muted-foreground">Ventas encontradas</p>
               </div>
             </CardContent>
           </Card>
@@ -357,7 +357,7 @@ export default function ConsultPurchases() {
             <CardContent className="p-4">
               <div className="text-center">
                 <p className="text-2xl font-bold text-primary">{formatCurrency(totalAmount)}</p>
-                <p className="text-sm text-muted-foreground">Total invertido</p>
+                <p className="text-sm text-muted-foreground">Total vendido</p>
               </div>
             </CardContent>
           </Card>
@@ -365,9 +365,9 @@ export default function ConsultPurchases() {
             <CardContent className="p-4">
               <div className="text-center">
                 <p className="text-2xl font-bold text-primary">
-                  {filteredPurchases.reduce((sum, purchase) => sum + purchase.quantity, 0)}
+                  {filteredSales.reduce((sum, sale) => sum + sale.quantity, 0)}
                 </p>
-                <p className="text-sm text-muted-foreground">Productos comprados</p>
+                <p className="text-sm text-muted-foreground">Productos vendidos</p>
               </div>
             </CardContent>
           </Card>
@@ -384,7 +384,7 @@ export default function ConsultPurchases() {
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead className="font-semibold">Producto</TableHead>
-                    <TableHead className="font-semibold">Proveedor</TableHead>
+                    <TableHead className="font-semibold">Cliente</TableHead>
                     <TableHead className="font-semibold text-right">Cantidad</TableHead>
                     <TableHead className="font-semibold text-right">Precio Unitario</TableHead>
                     <TableHead className="font-semibold text-right">Total</TableHead>
@@ -393,27 +393,27 @@ export default function ConsultPurchases() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredPurchases.length > 0 ? (
-                    filteredPurchases.map((purchase) => (
-                      <TableRow key={purchase.id} className="hover:bg-muted/30 transition-colors">
-                        <TableCell className="font-medium">{purchase.product}</TableCell>
-                        <TableCell className="text-muted-foreground">{purchase.supplier}</TableCell>
-                        <TableCell className="text-right">{purchase.quantity}</TableCell>
+                  {filteredSales.length > 0 ? (
+                    filteredSales.map((sale) => (
+                      <TableRow key={sale.id} className="hover:bg-muted/30 transition-colors">
+                        <TableCell className="font-medium">{sale.product}</TableCell>
+                        <TableCell className="text-muted-foreground">{sale.customer}</TableCell>
+                        <TableCell className="text-right">{sale.quantity}</TableCell>
                         <TableCell className="text-right font-mono">
-                          {formatCurrency(purchase.unitPrice)}
+                          {formatCurrency(sale.unitPrice)}
                         </TableCell>
                         <TableCell className="text-right font-mono font-semibold">
-                          {formatCurrency(purchase.total)}
+                          {formatCurrency(sale.total)}
                         </TableCell>
                         <TableCell className="text-center">
-                          {format(new Date(purchase.date), "dd/MM/yyyy")}
+                          {format(new Date(sale.date), "dd/MM/yyyy")}
                         </TableCell>
                         <TableCell className="text-center">
                           <div className="flex items-center justify-center gap-2">
                             <Button
                               size="icon"
                               variant="ghost"
-                              onClick={() => handleEditClick(purchase)}
+                              onClick={() => handleEditClick(sale)}
                               className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
                             >
                               <Pencil className="h-4 w-4" />
@@ -421,7 +421,7 @@ export default function ConsultPurchases() {
                             <Button
                               size="icon"
                               variant="ghost"
-                              onClick={() => handleDeleteClick(purchase)}
+                              onClick={() => handleDeleteClick(sale)}
                               className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -433,7 +433,7 @@ export default function ConsultPurchases() {
                   ) : (
                     <TableRow>
                       <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                        No se encontraron compras con los filtros aplicados
+                        No se encontraron ventas con los filtros aplicados
                       </TableCell>
                     </TableRow>
                   )}
@@ -448,9 +448,9 @@ export default function ConsultPurchases() {
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>Modificar Compra</DialogTitle>
+            <DialogTitle>Modificar Venta</DialogTitle>
             <DialogDescription>
-              Edita los detalles de la compra. El total se calculará automáticamente.
+              Edita los detalles de la venta. El total se calculará automáticamente.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -464,58 +464,12 @@ export default function ConsultPurchases() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-supplier">Proveedor</Label>
-                <Select 
-                  value={editForm.supplier} 
-                  onValueChange={(value) => handleEditFormChange('supplier', value)}
-                >
-                  <SelectTrigger id="edit-supplier">
-                    <SelectValue placeholder="Seleccionar proveedor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {suppliers.map((supplier) => (
-                      <SelectItem key={supplier} value={supplier}>
-                        {supplier}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-date">Fecha</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !editForm.date && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {editForm.date ? format(new Date(editForm.date), "dd/MM/yyyy") : "Seleccionar"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={editForm.date ? new Date(editForm.date) : undefined}
-                      onSelect={(date) => handleEditFormChange('date', date ? format(date, "yyyy-MM-dd") : "")}
-                      initialFocus
-                      className="p-3 pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
                 <Label htmlFor="edit-quantity">Cantidad</Label>
                 <Input
                   id="edit-quantity"
                   type="number"
                   value={editForm.quantity}
-                  onChange={(e) => handleEditFormChange('quantity', parseInt(e.target.value) || 0)}
+                  onChange={(e) => handleEditFormChange('quantity', parseFloat(e.target.value))}
                 />
               </div>
               <div className="space-y-2">
@@ -524,19 +478,42 @@ export default function ConsultPurchases() {
                   id="edit-unitPrice"
                   type="number"
                   value={editForm.unitPrice}
-                  onChange={(e) => handleEditFormChange('unitPrice', parseInt(e.target.value) || 0)}
+                  onChange={(e) => handleEditFormChange('unitPrice', parseFloat(e.target.value))}
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-total">Total</Label>
+              <Label htmlFor="edit-customer">Cliente</Label>
+              <Select 
+                value={editForm.customer} 
+                onValueChange={(value) => handleEditFormChange('customer', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {customers.map((customer) => (
+                    <SelectItem key={customer} value={customer}>
+                      {customer}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-date">Fecha</Label>
               <Input
-                id="edit-total"
-                type="text"
-                value={formatCurrency(editForm.total)}
-                disabled
-                className="bg-muted"
+                id="edit-date"
+                type="date"
+                value={editForm.date}
+                onChange={(e) => handleEditFormChange('date', e.target.value)}
               />
+            </div>
+            <div className="space-y-2">
+              <Label>Total Calculado</Label>
+              <div className="h-10 px-3 py-2 bg-muted border border-border rounded-md flex items-center font-semibold">
+                {formatCurrency(editForm.total)}
+              </div>
             </div>
           </div>
           <DialogFooter>
@@ -556,13 +533,13 @@ export default function ConsultPurchases() {
           <AlertDialogHeader>
             <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. Se eliminará permanentemente la compra de:
-              <span className="font-semibold block mt-2">{selectedPurchase?.product}</span>
+              Esta acción no se puede deshacer. Se eliminará permanentemente la venta
+              de <strong>{selectedSale?.product}</strong>.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Eliminar
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -13,61 +13,61 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 
-interface Purchase {
+interface Sale {
   id: string;
   product: string;
   quantity: number;
   unitPrice: number;
   total: number;
   date: string;
-  supplier: string;
+  customer: string;
 }
 
-const mockRecentPurchases: Purchase[] = [
+const mockRecentSales: Sale[] = [
   {
     id: "1",
     product: "Alimento Premium para Perro Royal Canin 15kg",
-    quantity: 12,
-    unitPrice: 180000,
-    total: 2160000,
+    quantity: 2,
+    unitPrice: 250000,
+    total: 500000,
     date: "2024-01-15",
-    supplier: "Pet Supply Co."
+    customer: "Carlos Rodríguez"
   },
   {
     id: "2",
     product: "Juguete Kong Classic Mediano",
-    quantity: 24,
-    unitPrice: 45000,
-    total: 1080000,
-    date: "2024-01-12",
-    supplier: "Mascotas Premium"
+    quantity: 1,
+    unitPrice: 65000,
+    total: 65000,
+    date: "2024-01-14",
+    customer: "María González"
   },
   {
     id: "3",
     product: "Collar LED Recargable para Perro",
-    quantity: 18,
-    unitPrice: 35000,
-    total: 630000,
-    date: "2024-01-10",
-    supplier: "Distribuidora Animal Care"
+    quantity: 1,
+    unitPrice: 55000,
+    total: 55000,
+    date: "2024-01-13",
+    customer: "Jorge Martínez"
   }
 ];
 
-const suppliers = [
-  "Pet Supply Co.",
-  "Mascotas Premium", 
-  "Distribuidora Animal Care",
-  "VetSupplies",
-  "PetWorld Mayorista"
+const customers = [
+  "Carlos Rodríguez",
+  "María González", 
+  "Jorge Martínez",
+  "Ana Pérez",
+  "Luis Torres"
 ];
 
-export default function CreatePurchase() {
+export default function CreateSale() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     product: "",
     quantity: "",
     unitPrice: "",
-    supplier: "",
+    customer: "",
     date: undefined as Date | undefined
   });
 
@@ -82,7 +82,7 @@ export default function CreatePurchase() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.product || !formData.quantity || !formData.unitPrice || !formData.supplier || !formData.date) {
+    if (!formData.product || !formData.quantity || !formData.unitPrice || !formData.customer || !formData.date) {
       toast({
         title: "Error",
         description: "Por favor complete todos los campos",
@@ -91,10 +91,10 @@ export default function CreatePurchase() {
       return;
     }
 
-    // Simulate saving purchase
+    // Simulate saving sale
     toast({
-      title: "Compra creada",
-      description: `Compra de ${formData.product} registrada exitosamente`,
+      title: "Venta creada",
+      description: `Venta de ${formData.product} registrada exitosamente`,
     });
 
     // Reset form
@@ -102,7 +102,7 @@ export default function CreatePurchase() {
       product: "",
       quantity: "",
       unitPrice: "",
-      supplier: "",
+      customer: "",
       date: undefined
     });
   };
@@ -131,10 +131,10 @@ export default function CreatePurchase() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-pet-text-primary mb-2">
-            Crear Compra
+            Crear Venta
           </h1>
           <p className="text-pet-text-secondary text-lg">
-            Registra una nueva compra en el sistema de inventario
+            Registra una nueva venta en el sistema
           </p>
         </div>
 
@@ -144,7 +144,7 @@ export default function CreatePurchase() {
             <Card className="shadow-lg border-0 bg-card backdrop-blur-sm">
               <CardHeader className="bg-muted rounded-t-lg">
                 <CardTitle className="text-2xl font-bold text-card-foreground">
-                  Información de la Compra
+                  Información de la Venta
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-8">
@@ -164,19 +164,19 @@ export default function CreatePurchase() {
                       />
                     </div>
 
-                    {/* Proveedor */}
+                    {/* Cliente */}
                     <div className="space-y-2">
-                      <Label htmlFor="supplier" className="text-foreground font-medium text-base">
-                        Proveedor *
+                      <Label htmlFor="customer" className="text-foreground font-medium text-base">
+                        Cliente *
                       </Label>
-                      <Select value={formData.supplier} onValueChange={(value) => handleInputChange("supplier", value)}>
+                      <Select value={formData.customer} onValueChange={(value) => handleInputChange("customer", value)}>
                         <SelectTrigger className="h-12 rounded-lg shadow-sm">
-                          <SelectValue placeholder="Seleccionar proveedor" />
+                          <SelectValue placeholder="Seleccionar cliente" />
                         </SelectTrigger>
                         <SelectContent>
-                          {suppliers.map((supplier) => (
-                            <SelectItem key={supplier} value={supplier}>
-                              {supplier}
+                          {customers.map((customer) => (
+                            <SelectItem key={customer} value={customer}>
+                              {customer}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -207,7 +207,7 @@ export default function CreatePurchase() {
                       <Input
                         id="unitPrice"
                         type="number"
-                        placeholder="180000"
+                        placeholder="250000"
                         min="0"
                         step="1000"
                         value={formData.unitPrice}
@@ -216,10 +216,10 @@ export default function CreatePurchase() {
                       />
                     </div>
 
-                    {/* Fecha de Compra */}
+                    {/* Fecha de Venta */}
                     <div className="space-y-2 md:col-span-1">
                       <Label className="text-foreground font-medium text-base">
-                        Fecha de Compra *
+                        Fecha de Venta *
                       </Label>
                       <Popover>
                         <PopoverTrigger asChild>
@@ -263,7 +263,7 @@ export default function CreatePurchase() {
                       type="submit"
                       className="flex-1 h-12 bg-accent hover:bg-accent/90 text-accent-foreground font-medium text-lg rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
                     >
-                      Guardar Compra
+                      Guardar Venta
                     </Button>
                     <Button
                       type="button"
@@ -279,12 +279,12 @@ export default function CreatePurchase() {
             </Card>
           </div>
 
-          {/* Recent Purchases Table */}
+          {/* Recent Sales Table */}
           <div className="xl:col-span-1">
             <Card className="shadow-lg border-0 bg-card backdrop-blur-sm h-fit">
               <CardHeader className="bg-muted rounded-t-lg">
                 <CardTitle className="text-xl font-bold text-card-foreground">
-                  Últimas Compras
+                  Últimas Ventas
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
@@ -299,19 +299,19 @@ export default function CreatePurchase() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {mockRecentPurchases.map((purchase) => (
-                        <TableRow key={purchase.id} className="hover:bg-muted/50 transition-colors">
+                      {mockRecentSales.map((sale) => (
+                        <TableRow key={sale.id} className="hover:bg-muted/50 transition-colors">
                           <TableCell className="font-medium text-foreground">
-                            {purchase.product}
+                            {sale.product}
                           </TableCell>
                           <TableCell className="text-muted-foreground">
-                            {purchase.quantity}
+                            {sale.quantity}
                           </TableCell>
                           <TableCell className="text-muted-foreground font-medium">
-                            {formatCurrency(purchase.total)}
+                            {formatCurrency(sale.total)}
                           </TableCell>
                           <TableCell className="text-muted-foreground text-sm">
-                            {format(new Date(purchase.date), "dd/MM/yyyy")}
+                            {format(new Date(sale.date), "dd/MM/yyyy")}
                           </TableCell>
                         </TableRow>
                       ))}

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Bell, Search, User, Menu, LogOut, Settings, UserIcon, ShieldCheck } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Bell, Search, User, Menu, LogOut, Settings, UserIcon, ShieldCheck, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -16,7 +16,21 @@ import { useNavigate } from "react-router-dom";
 
 export function PetManagerHeader() {
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if dark mode is enabled on mount
+    const isDark = document.documentElement.classList.contains('dark');
+    setIsDarkMode(isDark);
+  }, []);
+
+  const toggleDarkMode = () => {
+    const newMode = !isDarkMode;
+    setIsDarkMode(newMode);
+    document.documentElement.classList.toggle('dark', newMode);
+    localStorage.setItem('theme', newMode ? 'dark' : 'light');
+  };
 
   const handleLogout = () => {
     setShowLogoutDialog(false);
@@ -41,6 +55,20 @@ export function PetManagerHeader() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Theme Toggle */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleDarkMode}
+            className="relative hover:bg-accent"
+          >
+            {isDarkMode ? (
+              <Sun className="h-5 w-5" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )}
+          </Button>
+
           <Button variant="ghost" size="sm" className="relative">
             <Bell className="h-5 w-5" />
             <span className="absolute -top-1 -right-1 h-3 w-3 bg-destructive rounded-full text-xs"></span>
