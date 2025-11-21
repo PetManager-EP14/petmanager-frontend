@@ -4,7 +4,7 @@ import { jwtDecode } from "jwt-decode";
 // Definición de la interfaz del componente
 interface PrivateRouteProps {
     children: JSX.Element;
-    // Permiso requerido (ej: 'purchase.create', 'sale.read')
+    // Permiso requerido 
     requiredPermission?: string; 
 }
 
