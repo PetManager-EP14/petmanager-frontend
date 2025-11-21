@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from "react"; 
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,9 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+
+//  IMPORTACIÓN NECESARIA PARA INTEGRACIÓN CON BACKEND
+import { createSale } from "@/services/salesService";
 
 interface Sale {
   id: string;
@@ -79,7 +82,8 @@ export default function CreateSale() {
     setFormData(prev => ({ ...prev, date }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  //  REEMPLAZO DEL handleSubmit — AHORA CON BACKEND REAL 
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.product || !formData.quantity || !formData.unitPrice || !formData.customer || !formData.date) {
@@ -91,20 +95,39 @@ export default function CreateSale() {
       return;
     }
 
-    // Simulate saving sale
-    toast({
-      title: "Venta creada",
-      description: `Venta de ${formData.product} registrada exitosamente`,
-    });
+    try {
+      const salePayload = {
+        product: formData.product,
+        quantity: Number(formData.quantity),
+        unitPrice: Number(formData.unitPrice),
+        customer: formData.customer,
+        date: formData.date.toISOString().split("T")[0], // yyyy-MM-dd
+        total: Number(formData.quantity) * Number(formData.unitPrice)
+      };
 
-    // Reset form
-    setFormData({
-      product: "",
-      quantity: "",
-      unitPrice: "",
-      customer: "",
-      date: undefined
-    });
+      await createSale(salePayload);
+
+      toast({
+        title: "Venta creada",
+        description: `Venta de ${formData.product} registrada exitosamente`,
+      });
+
+      setFormData({
+        product: "",
+        quantity: "",
+        unitPrice: "",
+        customer: "",
+        date: undefined
+      });
+
+    } catch (error) {
+      console.error("Error creando venta:", error);
+      toast({
+        title: "Error al registrar la venta",
+        description: "No se pudo registrar en el servidor",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleCancel = () => {
@@ -128,7 +151,6 @@ export default function CreateSale() {
   return (
     <div className="min-h-screen bg-pet-background">
       <div className="container mx-auto px-6 py-8 max-w-7xl">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-pet-text-primary mb-2">
             Crear Venta
@@ -139,7 +161,6 @@ export default function CreateSale() {
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-          {/* Form Section */}
           <div className="xl:col-span-2">
             <Card className="shadow-lg border-0 bg-card backdrop-blur-sm">
               <CardHeader className="bg-muted rounded-t-lg">
@@ -150,7 +171,7 @@ export default function CreateSale() {
               <CardContent className="p-8">
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Producto */}
+
                     <div className="space-y-2">
                       <Label htmlFor="product" className="text-foreground font-medium text-base">
                         Producto *
@@ -164,7 +185,6 @@ export default function CreateSale() {
                       />
                     </div>
 
-                    {/* Cliente */}
                     <div className="space-y-2">
                       <Label htmlFor="customer" className="text-foreground font-medium text-base">
                         Cliente *
@@ -183,7 +203,6 @@ export default function CreateSale() {
                       </Select>
                     </div>
 
-                    {/* Cantidad */}
                     <div className="space-y-2">
                       <Label htmlFor="quantity" className="text-foreground font-medium text-base">
                         Cantidad *
@@ -199,7 +218,6 @@ export default function CreateSale() {
                       />
                     </div>
 
-                    {/* Precio Unitario */}
                     <div className="space-y-2">
                       <Label htmlFor="unitPrice" className="text-foreground font-medium text-base">
                         Precio Unitario (COP) *
@@ -216,7 +234,6 @@ export default function CreateSale() {
                       />
                     </div>
 
-                    {/* Fecha de Venta */}
                     <div className="space-y-2 md:col-span-1">
                       <Label className="text-foreground font-medium text-base">
                         Fecha de Venta *
@@ -246,7 +263,6 @@ export default function CreateSale() {
                       </Popover>
                     </div>
 
-                    {/* Total Calculado */}
                     <div className="space-y-2">
                       <Label className="text-foreground font-medium text-base">
                         Total Calculado
@@ -257,7 +273,6 @@ export default function CreateSale() {
                     </div>
                   </div>
 
-                  {/* Buttons */}
                   <div className="flex flex-col sm:flex-row gap-4 pt-6">
                     <Button
                       type="submit"
@@ -279,7 +294,6 @@ export default function CreateSale() {
             </Card>
           </div>
 
-          {/* Recent Sales Table */}
           <div className="xl:col-span-1">
             <Card className="shadow-lg border-0 bg-card backdrop-blur-sm h-fit">
               <CardHeader className="bg-muted rounded-t-lg">

@@ -1,17 +1,19 @@
-const API_URL = import.meta.env.VITE_API_URL;
+import { apiClient } from "./apiClient";
 
-export async function login(username: string, password: string) {
-  console.log("API_URL:", API_URL);
-  
-  const response = await fetch(`${API_URL}/api/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: username, password }), // Spring usa 'email'
-  });
+export const login = async (email: string, password: string) => {
+  const response = await apiClient.post("/auth/login", { email, password });
 
-  if (!response.ok) {
-    throw new Error("Error en el inicio de sesión");
-  }
+  const { token, role, name } = response.data;
 
-  return response.json();
-}
+  localStorage.setItem("token", token);
+  localStorage.setItem("role", role);
+  localStorage.setItem("name", name);
+
+  return response.data;
+};
+
+export const logout = () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("role");
+  localStorage.removeItem("name");
+};

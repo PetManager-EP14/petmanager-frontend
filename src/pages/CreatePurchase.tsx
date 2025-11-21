@@ -8,122 +8,157 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-import { toast } from "@/hooks/use-toast";
+import { CalendarIcon } from "lucide-react"; 
+import { format } from "date-fns"; 
+import { cn } from "@/lib/utils"; 
+import { useToast } from "@/hooks/use-toast"; 
+import { createPurchase } from "@/services/purchaseService"; 
+
 
 interface Purchase {
-  id: number;
-  productName: string;
-  supplierName: string;
-  quantity: number;
-  price: number;
-  total: number;
-  date: string;
+    id: number;
+    productName: string;
+    supplierName: string;
+    quantity: number;
+    price: number;
+    total: number;
+    date: string;
 }
 
+// Datos de ejemplo para la tabla de "Últimas Compras" 
 const mockRecentPurchases: Purchase[] = [
-  {
-    id: 1,
-    productName: "Alimento Premium para Perro Royal Canin 15kg",
-    quantity: 12,
-    price: 180000,
-    total: 2160000,
-    date: "2024-01-15",
-    supplierName: "Pet Supply Co."
-  },
-  {
-    id: 2,
-    productName: "Juguete Kong Classic Mediano",
-    quantity: 24,
-    price: 45000,
-    total: 1080000,
-    date: "2024-01-12",
-    supplierName: "Mascotas Premium"
-  },
-  {
-    id: 3,
-    productName: "Collar LED Recargable para Perro",
-    quantity: 18,
-    price: 35000,
-    total: 630000,
-    date: "2024-01-10",
-    supplierName: "Distribuidora Animal Care"
-  }
+    {
+        id: 1,
+        productName: "Alimento Premium para Perro Royal Canin 15kg",
+        quantity: 12,
+        price: 180000,
+        total: 2160000,
+        date: "2024-01-15",
+        supplierName: "Pet Supply Co."
+    },
+    {
+        id: 2,
+        productName: "Juguete Kong Classic Mediano",
+        quantity: 24,
+        price: 45000,
+        total: 1080000,
+        date: "2024-01-12",
+        supplierName: "Mascotas Premium"
+    },
+    {
+        id: 3,
+        productName: "Collar LED Recargable para Perro",
+        quantity: 18,
+        price: 35000,
+        total: 630000,
+        date: "2024-01-10",
+        supplierName: "Distribuidora Animal Care"
+    }
 ];
 
+// Lista de proveedores disponibles 
 const suppliers = [
-  "Pet Supply Co.",
-  "Mascotas Premium", 
-  "Distribuidora Animal Care",
-  "VetSupplies",
-  "PetWorld Mayorista"
+    "Pet Supply Co.",
+    "Mascotas Premium",
+    "Distribuidora Animal Care",
+    "VetSupplies",
+    "PetWorld Mayorista"
 ];
 
 export default function CreatePurchase() {
-  const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    product: "",
-    quantity: "",
-    unitPrice: "",
-    supplier: "",
-    date: undefined as Date | undefined
-  });
+    const navigate = useNavigate();
+    const { toast } = useToast();
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleDateSelect = (date: Date | undefined) => {
-    setFormData(prev => ({ ...prev, date }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.product || !formData.quantity || !formData.unitPrice || !formData.supplier || !formData.date) {
-      toast({
-        title: "Error",
-        description: "Por favor complete todos los campos",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Simulate saving purchase
-    toast({
-      title: "Compra creada",
-      description: `Compra de ${formData.product} registrada exitosamente`,
+    // Estado del formulario [6]
+    const [formData, setFormData] = useState({
+        product: "",
+        quantity: "",
+        unitPrice: "",
+        supplier: "",
+        date: undefined as Date | undefined
     });
 
-    // Reset form
-    setFormData({
-      product: "",
-      quantity: "",
-      unitPrice: "",
-      supplier: "",
-      date: undefined
-    });
-  };
+    const handleInputChange = (field: string, value: string) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
 
-  const handleCancel = () => {
-    navigate("/dashboard");
-  };
+    const handleDateSelect = (date: Date | undefined) => {
+        setFormData(prev => ({ ...prev, date }));
+    };
 
-  const calculateTotal = () => {
-    const quantity = parseFloat(formData.quantity) || 0;
-    const unitPrice = parseFloat(formData.unitPrice) || 0;
-    return quantity * unitPrice;
-  };
+    // Función que calcula el total [7]
+    const calculateTotal = () => {
+        const quantity = parseFloat(formData.quantity) || 0;
+        const unitPrice = parseFloat(formData.unitPrice) || 0;
+        return quantity * unitPrice;
+    };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
+    // Función de formato de moneda [7]
+    const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat('es-CO', {
+            style: 'currency',
+            currency: 'COP',
+            minimumFractionDigits: 0
+        }).format(amount);
+    };
+
+    // Lógica integrada de envío del formulario (API call y manejo de errores) 
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        // 1. Validación de campos obligatorios 
+        if (!formData.product || !formData.quantity || !formData.unitPrice || !formData.supplier || !formData.date) {
+            toast({
+                title: "Error",
+                description: "Por favor complete todos los campos",
+                variant: "destructive"
+            });
+            return;
+        }
+        // 2. Preparar el cuerpo de la solicitud 
+        const purchaseBody = {
+            productName: formData.product,
+            supplierName: formData.supplier,
+            quantity: Number(formData.quantity),
+            price: Number(formData.unitPrice),
+            total: Number(formData.quantity) * Number(formData.unitPrice),
+            date: formData.date.toISOString().split("T"), // yyyy-MM-dd 
+        };
+
+        try {
+            // 3. Llamada al servicio real [3]
+            await createPurchase(purchaseBody);
+
+            toast({
+                title: "Compra registrada",
+                description: `La compra de ${formData.product} fue creada correctamente`,
+            });
+            
+            // 4. Resetear formulario 
+            setFormData({
+                product: "",
+                quantity: "",
+                unitPrice: "",
+                supplier: "",
+                date: undefined
+            });
+
+            // 5. Redirección 
+            navigate("/consultar-compras");
+
+        } catch (error: any) {
+            // 6. Manejo de errores detallado, capturando el mensaje del backend (ej: "El estado es obligatorio") [3, 9]
+            toast({
+                title: "Error al registrar la compra",
+                description: error.message || "Intenta nuevamente",
+                variant: "destructive",
+            });
+        }
+    };
+
+    const handleCancel = () => {
+        navigate("/dashboard"); 
+    };
 
   return (
     <div className="min-h-screen bg-pet-background">
@@ -139,6 +174,7 @@ export default function CreatePurchase() {
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+          
           {/* Form Section */}
           <div className="xl:col-span-2">
             <Card className="shadow-lg border-0 bg-card backdrop-blur-sm">
@@ -149,7 +185,9 @@ export default function CreatePurchase() {
               </CardHeader>
               <CardContent className="p-8">
                 <form onSubmit={handleSubmit} className="space-y-6">
+                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
                     {/* Producto */}
                     <div className="space-y-2">
                       <Label htmlFor="product" className="text-foreground font-medium text-base">
@@ -216,7 +254,7 @@ export default function CreatePurchase() {
                       />
                     </div>
 
-                    {/* Fecha de Compra */}
+                    {/* Fecha */}
                     <div className="space-y-2 md:col-span-1">
                       <Label className="text-foreground font-medium text-base">
                         Fecha de Compra *
@@ -255,6 +293,7 @@ export default function CreatePurchase() {
                         {formatCurrency(calculateTotal())}
                       </div>
                     </div>
+
                   </div>
 
                   {/* Buttons */}
@@ -274,12 +313,13 @@ export default function CreatePurchase() {
                       Cancelar
                     </Button>
                   </div>
+
                 </form>
               </CardContent>
             </Card>
           </div>
 
-          {/* Recent Purchases Table */}
+          {/* Últimas Compras */}
           <div className="xl:col-span-1">
             <Card className="shadow-lg border-0 bg-card backdrop-blur-sm h-fit">
               <CardHeader className="bg-muted rounded-t-lg">
@@ -321,6 +361,7 @@ export default function CreatePurchase() {
               </CardContent>
             </Card>
           </div>
+
         </div>
       </div>
     </div>

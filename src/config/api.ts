@@ -1,0 +1,1 @@
+export const API_URL = "https://petmanager-o0lu.onrender.com/api";
