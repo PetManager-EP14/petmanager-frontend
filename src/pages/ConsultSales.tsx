@@ -96,18 +96,18 @@ export default function ConsultSales() {
     // ---------- CARGA DE VENTAS DESDE BACKEND (LÓGICA CORREGIDA) ----------
     const fetchSales = async () => {
         try {
-            const { data } = await getSales(); // data es List<SaleDTO>
+            const response = await getSales();
+            const data: any[] = Array.isArray(response?.data) ? response.data : [];
 
             const mapped: Sale[] = data.map((item: any) => {
-                // ** CORRECCIÓN CLAVE: Acceder al primer elemento de la lista 'details' **
-                // item.details es un array de SaleDetailDTOs. Tomamos el índice 0.
-                const detail =
-                    item.details && item.details.length > 0 ? item.details : {}; 
+                
+                const detailsArray = item.details;
+                const detail = detailsArray && detailsArray.length > 0 ? detailsArray : {}; 
                 
                 // Extraemos los campos del SaleDetailDTO
                 const productName = detail.productName ?? "Producto Desconocido"; 
                 const unitPrice = detail.unitPrice ?? 0; 
-                const quantity = detail.amount ?? 0; // 'amount' en DTO es 'quantity' en Front
+                const quantity = detail.amount ?? 0; // 'amount' es el campo de cantidad [5-8]
 
                 return {
                     id: item.saleId ? item.saleId.toString() : item.id,
@@ -171,12 +171,12 @@ export default function ConsultSales() {
         if (field === "quantity" || field === "unitPrice") {
             const quantity = typeof updated.quantity === 'number' ? updated.quantity : parseFloat(updated.quantity as string) || 0;
             const unitPrice = typeof updated.unitPrice === 'number' ? updated.unitPrice : parseFloat(updated.unitPrice as string) || 0;
-            updated.total = quantity * unitPrice;
+            updated.total = quantity * unitPrice; 
         }
-        setEditForm(updated);
+        setEditForm(updated); 
     };
 
-    const handleEditSubmit = () => {
+    const handleEditSubmit = () => { 
         if (!selectedSale) return;
         const updated = sales.map((s) =>
             s.id === selectedSale.id ? editForm : s
@@ -214,7 +214,7 @@ export default function ConsultSales() {
     );
     const customers = [...new Set(sales.map((s) => s.customer))];
     
-    // ----------------------------- RENDER ----------------------------------
+    // ----------------------------- RENDER (Completo) ----------------------------------
     return (
         <div className="min-h-screen bg-gradient-to-br from-background
 via-background to-secondary/20 p-4 md:p-6">
@@ -527,7 +527,8 @@ gap-4">
             </Dialog>
 
             {/* ---------------------- ELIMINAR DIALOG -------------------------- */}
-            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <AlertDialog open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>¿Estas seguro?</AlertDialogTitle>
