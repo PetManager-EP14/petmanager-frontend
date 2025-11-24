@@ -1,228 +1,224 @@
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { useEffect, useState } from "react"; 
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; 
+import { Button } from "@/components/ui/button"; 
+import { Label } from "@/components/ui/label"; 
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Calendar } from "@/components/ui/calendar";
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table"; 
+import { Calendar } from "@/components/ui/calendar"; 
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover"; 
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+    Select,
+    SelectContent, 
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"; 
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"; 
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"; 
 import {
-  CalendarIcon,
-  Search,
-  Filter,
-  Pencil,
-  Trash2,
-} from "lucide-react";
-
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
-import { Input } from "@/components/ui/input";
-
+    CalendarIcon,
+    Search,
+    Filter,
+    Pencil, 
+    Trash2,
+} from "lucide-react"; 
+import { format } from "date-fns"; 
+import { cn } from "@/lib/utils"; 
+import { useToast } from "@/hooks/use-toast"; 
+import { Input } from "@/components/ui/input"; 
 // Servicio real
-import { getSales } from "@/services/salesService";
+import { getSales } from "@/services/salesService"; 
 
-interface Sale {
-  id: string;
-  product: string;
-  quantity: number;
-  unitPrice: number;
-  total: number;
-  date: string;
-  customer: string;
+// Interfaz que representa una fila en la tabla del frontend
+interface Sale { 
+    id: string;
+    product: string;
+    quantity: number;
+    unitPrice: number;
+    total: number;
+    date: string;
+    customer: string;
 }
 
 export default function ConsultSales() {
-  const [sales, setSales] = useState<Sale[]>([]);
-  const [filteredSales, setFilteredSales] = useState<Sale[]>([]);
-  const [selectedCustomer, setSelectedCustomer] = useState<string>("");
-
-  const [startDate, setStartDate] = useState<Date>();
-  const [endDate, setEndDate] = useState<Date>();
-
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
-  const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
-
-  const [editForm, setEditForm] = useState<Sale>({
-    id: "",
-    product: "",
-    quantity: 0,
-    unitPrice: 0,
-    total: 0,
-    date: "",
-    customer: "",
-  });
-
-  const { toast } = useToast();
-
-  // ---------- FORMATEADOR DE MONEDA ----------
-  const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat("es-CO", {
-      style: "currency",
-      currency: "COP",
-      minimumFractionDigits: 0,
-    }).format(amount);
-
-  // ---------- CARGA DE VENTAS DESDE BACKEND ----------
-  const fetchSales = async () => {
-    try {
-      const { data } = await getSales(); // ← ahora sí viene tipado correctamente
-
-      const mapped: Sale[] = data.map((item) => ({
-        id: item.id,
-        product: item.productName,
-        quantity: item.quantity,
-        unitPrice: item.price,
-        total: item.total,
-        date: item.date,
-        customer: item.customerName ?? "Cliente",
-      }));
-
-      setSales(mapped);
-      setFilteredSales(mapped);
-    } catch (error) {
-      toast({
-        title: "Error al cargar ventas",
-        description: "No fue posible obtener la información desde el servidor.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  useEffect(() => {
-    fetchSales();
-  }, []);
-
-  // ---------- FILTROS ----------
-  const handleFilter = () => {
-    let filtered = [...sales];
-
-    if (selectedCustomer)
-      filtered = filtered.filter((s) => s.customer === selectedCustomer);
-
-    if (startDate)
-      filtered = filtered.filter(
-        (s) => new Date(s.date) >= new Date(startDate)
-      );
-
-    if (endDate)
-      filtered = filtered.filter((s) => new Date(s.date) <= new Date(endDate)
-      );
-
-    setFilteredSales(filtered);
-  };
-
-  const clearFilters = () => {
-    setSelectedCustomer("");
-    setStartDate(undefined);
-    setEndDate(undefined);
-    setFilteredSales(sales);
-  };
-
-  // ---------- EDICIÓN ----------
-  const handleEditClick = (sale: Sale) => {
-    setSelectedSale(sale);
-    setEditForm(sale);
-    setEditDialogOpen(true);
-  };
-
-  const handleEditFormChange = (
-    field: keyof Sale,
-    value: string | number
-  ) => {
-    const updated = { ...editForm, [field]: value };
-
-    if (field === "quantity" || field === "unitPrice") {
-      updated.total = updated.quantity * updated.unitPrice;
-    }
-
-    setEditForm(updated);
-  };
-
-  const handleEditSubmit = () => {
-    if (!selectedSale) return;
-
-    const updated = sales.map((s) =>
-      s.id === selectedSale.id ? editForm : s
-    );
-
-    setSales(updated);
-    setFilteredSales(updated);
-
-    toast({
-      title: "Venta modificada",
-      description: "Los cambios fueron aplicados exitosamente.",
+    const [sales, setSales] = useState<Sale[]>([]); 
+    const [filteredSales, setFilteredSales] = useState<Sale[]>([]); 
+    const [selectedCustomer, setSelectedCustomer] = useState<string>(""); 
+    const [startDate, setStartDate] = useState<Date>(); 
+    const [endDate, setEndDate] = useState<Date>(); 
+    const [editDialogOpen, setEditDialogOpen] = useState(false); 
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false); 
+    const [selectedSale, setSelectedSale] = useState<Sale | null>(null); 
+    const [editForm, setEditForm] = useState<Sale>({ 
+        id: "", 
+        product: "",
+        quantity: 0,
+        unitPrice: 0,
+        total: 0,
+        date: "",
+        customer: "", 
     });
+    const { toast } = useToast(); 
 
-    setEditDialogOpen(false);
-  };
+    // ---------- FORMATEADOR DE MONEDA ----------
+    const formatCurrency = (amount: number) =>
+        new Intl.NumberFormat("es-CO", {
+            style: "currency",
+            currency: "COP",
+            minimumFractionDigits: 0,
+        }).format(amount); 
 
-  // ---------- ELIMINACIÓN ----------
-  const handleDeleteClick = (sale: Sale) => {
-    setSelectedSale(sale);
-    setDeleteDialogOpen(true);
-  };
+    // ---------- CARGA DE VENTAS DESDE BACKEND (CORRECCIÓN CLAVE) ----------
+    const fetchSales = async () => {
+        try {
+            // data es List<SaleDTO> (donde SaleDTO tiene List<SaleDetailDTO> details)
+            const { data } = await getSales(); 
 
-  const handleDeleteConfirm = () => {
-    if (!selectedSale) return;
+            const mapped: Sale[] = data.map((item) => {
+                // ** LÓGICA DE EXTRACCIÓN CORREGIDA **
+                // Obtenemos el primer detalle de la venta para resumir en la tabla
+                const detail =
+                    item.details && item.details.length > 0 ? item.details : {};
 
-    const updated = sales.filter((s) => s.id !== selectedSale.id);
+                // Asumimos que SaleDetailDTO (mapeado en el backend) contiene productName y unitPrice
+                const productName = detail.productName ?? "Producto Desconocido";
+                // Aseguramos que unitPrice sea un número (0 si es nulo) para evitar $ NaN
+                const unitPrice = detail.unitPrice ?? 0; 
+                const quantity = detail.amount ?? 0;
 
-    setSales(updated);
-    setFilteredSales(updated);
+                return {
+                    // Usamos saleId como ID (Long en backend, string en frontend)
+                    id: item.saleId ? item.saleId.toString() : "",
+                    product: productName,
+                    quantity: quantity,
+                    unitPrice: unitPrice,
+                    total: item.total,
+                    // customerName ahora se mapea en SaleDTO gracias a SaleMapper.java
+                    date: item.date,
+                    customer: item.customerName ?? "Cliente",
+                };
+            });
+            setSales(mapped); [8, 19]
+            setFilteredSales(mapped); [8, 19]
+        } catch (error) {
+            toast({
+                title: "Error al cargar ventas", 
+                description: "No fue posible obtener la información desde el servidor.", 
+                variant: "destructive", 
+            });
+        }
+    };
+    
+    useEffect(() => {
+        fetchSales(); 
+    }, []); [9, 20]
 
-    toast({
-      title: "Venta eliminada",
-      description: "La venta fue eliminada correctamente.",
-    });
+    // ---------- FILTROS ----------
+    const handleFilter = () => { 
+        let filtered = [...sales];
+        if (selectedCustomer)
+            filtered = filtered.filter((s) => s.customer === selectedCustomer); 
+        if (startDate)
+            filtered = filtered.filter(
+                (s) => new Date(s.date) >= new Date(startDate)
+            ); [9, 20]
+        if (endDate)
+            filtered = filtered.filter((s) => new Date(s.date) <= new Date(endDate)); 
+        setFilteredSales(filtered); [10, 21]
+    };
 
-    setDeleteDialogOpen(false);
-  };
+    const clearFilters = () => { [10, 21]
+        setSelectedCustomer("");
+        setStartDate(undefined);
+        setEndDate(undefined);
+        setFilteredSales(sales); [10, 21]
+    };
 
-  const totalAmount = filteredSales.reduce(
-    (sum, s) => sum + s.total,
-    0
-  );
+    // ---------- EDICIÓN ----------
+    const handleEditClick = (sale: Sale) => { 
+        setSelectedSale(sale);
+        setEditForm(sale);
+        setEditDialogOpen(true); 
+    };
 
-  const customers = [...new Set(sales.map((s) => s.customer))];
+    const handleEditFormChange = (
+        field: keyof Sale,
+        value: string | number
+    ) => {
+        const updated = { ...editForm, [field]: value }; [10, 21, 22]
+
+        if (field === "quantity" || field === "unitPrice") {
+            // Recalcula el total si cambian cantidad o precio
+            updated.total = (updated.quantity as number) * (updated.unitPrice as number); 
+        }
+        setEditForm(updated); 
+    };
+
+    const handleEditSubmit = () => { 
+        if (!selectedSale) return;
+        // Lógica de actualización local simulada (debe ser reemplazada por una llamada PUT/PATCH real)
+        const updated = sales.map((s) =>
+            s.id === selectedSale.id ? editForm : s
+        ); [11, 22]
+        setSales(updated); 
+        setFilteredSales(updated); 
+        toast({
+            title: "Venta modificada", 
+            description: "Los cambios fueron aplicados exitosamente.", 
+        });
+        setEditDialogOpen(false); 
+    };
+
+    // ---------- ELIMINACIÓN ----------
+    const handleDeleteClick = (sale: Sale) => { 
+        setSelectedSale(sale);
+        setDeleteDialogOpen(true); 
+    };
+
+    const handleDeleteConfirm = () => { 
+        if (!selectedSale) return;
+        // Lógica de eliminación local simulada (debe ser reemplazada por una llamada DELETE real)
+        const updated = sales.filter((s) => s.id !== selectedSale.id); 
+        setSales(updated); 
+        setFilteredSales(updated); 
+        toast({
+            title: "Venta eliminada", 
+            description: "La venta fue eliminada correctamente.", 
+        });
+        setDeleteDialogOpen(false); [12, 23]
+    };
+
+    const totalAmount = filteredSales.reduce(
+        (sum, s) => sum + s.total,
+        0
+    ); [13, 24]
+    const customers = [...new Set(sales.map((s) => s.customer))]; [13, 24]
 
   // -----------------------------------------------------------------------
   // ----------------------------- RENDER ----------------------------------
