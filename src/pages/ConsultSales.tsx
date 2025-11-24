@@ -96,8 +96,7 @@ export default function ConsultSales() {
     // ---------- CARGA DE VENTAS DESDE BACKEND (LÓGICA CORREGIDA) ----------
     const fetchSales = async () => {
         try {
-            const response = await getSales();
-            const data: any[] = Array.isArray(response?.data) ? response.data : [];
+            const { data } = await getSales(); 
 
             const mapped: Sale[] = data.map((item: any) => {
                 
@@ -277,7 +276,7 @@ gap-4">
                                             )}
                                         >
                                             <CalendarIcon className="mr-2 h-4 w-4" />
-                                            {startDate ? format(startDate, "dd/MM/yyyy") : "Seleccionarfecha"}
+                                            {startDate ? format(startDate, "dd/MM/yyyy") : "Seleccionar fecha"}
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent align="start" className="w-auto p-0">
@@ -303,7 +302,7 @@ gap-4">
                                             )}
                                         >
                                             <CalendarIcon className="mr-2 h-4 w-4" />
-                                            {endDate ? format(endDate, "dd/MM/yyyy") : "Seleccionar fecha"}
+                                            {endDate ? format(endDate, "dd/MM/yyyy") : "Seleccionarfecha"}
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent align="start" className="w-auto p-0">
