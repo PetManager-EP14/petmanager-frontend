@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; 
-import { Button } from "@/components/ui/button"; 
-import { Label } from "@/components/ui/label"; 
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import {
     Table,
     TableBody,
@@ -9,13 +9,13 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table"; 
-import { Calendar } from "@/components/ui/calendar"; 
+} from "@/components/ui/table";
+import { Calendar } from "@/components/ui/calendar";
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
-} from "@/components/ui/popover"; 
+} from "@/components/ui/popover";
 import {
     Select,
     SelectContent,
@@ -47,15 +47,15 @@ import {
     Filter,
     Pencil,
     Trash2,
-} from "lucide-react"; 
-import { format } from "date-fns"; 
-import { cn } from "@/lib/utils"; 
-import { useToast } from "@/hooks/use-toast"; 
-import { Input } from "@/components/ui/input"; 
+} from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
 // Servicio real
 import { getSales } from "@/services/salesService";
 
-// Interfaz que representa una fila en la tabla del frontend
+// Interfaz que representa una fila en la tabla del frontend 
 interface Sale {
     id: string;
     product: string;
@@ -67,17 +67,17 @@ interface Sale {
 }
 
 export default function ConsultSales() {
-    const [sales, setSales] = useState<Sale[]>([]); 
-    const [filteredSales, setFilteredSales] = useState<Sale[]>([]);
+    const [sales, setSales] = useState<Sale[]>([]);
+    const [filteredSales, setFilteredSales] = useState<Sale[]>([]); 
     const [selectedCustomer, setSelectedCustomer] = useState<string>("");
     const [startDate, setStartDate] = useState<Date>();
     const [endDate, setEndDate] = useState<Date>();
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
-    const [editForm, setEditForm] = useState<Sale>({ 
+    const [editForm, setEditForm] = useState<Sale>({
         id: "",
-        product: "",
+        product: "", 
         quantity: 0,
         unitPrice: 0,
         total: 0,
@@ -87,26 +87,28 @@ export default function ConsultSales() {
     const { toast } = useToast();
 
     // ---------- FORMATEADOR DE MONEDA ----------
-    const formatCurrency = (amount: number) => 
+    const formatCurrency = (amount: number) =>
         new Intl.NumberFormat("es-CO", {
             style: "currency",
             currency: "COP",
             minimumFractionDigits: 0,
         }).format(amount);
 
-    // ---------- CARGA DE VENTAS DESDE BACKEND (CORRECCIÓN CLAVE) ----------
+    // ---------- CARGA DE VENTAS DESDE BACKEND (LÓGICA CORREGIDA) ----------
     const fetchSales = async () => {
         try {
-            const { data } = await getSales(); 
+            const { data } = await getSales(); // data es List<SaleDTO>
 
             const mapped: Sale[] = data.map((item: any) => {
+                // ** CORRECCIÓN CLAVE: Acceder al primer elemento de la lista 'details' **
+                // item.details es List<SaleDetailDTO>. Tomamos el índice 0 para la fila.
                 const detail =
-                    item.details && item.details.length > 0 ? item.details : {}; // Tomar el primer detalle
+                    item.details && item.details.length > 0 ? item.details : {};
 
                 // Extraemos los campos que ahora deben venir populados del Backend (SaleDetailDTO)
                 const productName = detail.productName ?? "Producto Desconocido"; 
                 const unitPrice = detail.unitPrice ?? 0; 
-                const quantity = detail.amount ?? 0; // 'amount' es la cantidad
+                const quantity = detail.amount ?? 0; // 'amount' en el DTO es 'quantity' en el Front
 
                 return {
                     id: item.saleId ? item.saleId.toString() : item.id,
@@ -115,28 +117,28 @@ export default function ConsultSales() {
                     unitPrice: unitPrice,
                     total: item.total, 
                     date: item.date,
-                    customer: item.customerName ?? "Cliente", // customerName debe estar en SaleDTO
+                    customer: item.customerName ?? "Cliente", 
                 };
             });
 
             setSales(mapped);
             setFilteredSales(mapped);
         } catch (error) {
-            toast({ 
+            toast({
                 title: "Error al cargar ventas",
-                description: "No fue posible obtener la información desde el servidor.",
+                description: "No fue posible obtener la información desde el servidor.", 
                 variant: "destructive",
             });
         }
     };
     
     useEffect(() => {
-        fetchSales();
+        fetchSales(); [7]
     }, []);
 
     // ---------- FILTROS ----------
     const handleFilter = () => {
-        let filtered = [...sales];
+        let filtered = [...sales]; [7]
         if (selectedCustomer)
             filtered = filtered.filter((s) => s.customer === selectedCustomer);
         if (startDate)
@@ -144,11 +146,11 @@ export default function ConsultSales() {
                 (s) => new Date(s.date) >= new Date(startDate)
             );
         if (endDate)
-            filtered = filtered.filter((s) => new Date(s.date) <= new Date(endDate));
+            filtered = filtered.filter((s) => new Date(s.date) <= new Date(endDate)); 
         setFilteredSales(filtered);
     };
 
-    const clearFilters = () => {
+    const clearFilters = () => { 
         setSelectedCustomer("");
         setStartDate(undefined);
         setEndDate(undefined);
@@ -156,19 +158,20 @@ export default function ConsultSales() {
     };
 
     // ---------- EDICIÓN ----------
-    const handleEditClick = (sale: Sale) => {
+    const handleEditClick = (sale: Sale) => { 
         setSelectedSale(sale);
         setEditForm(sale);
         setEditDialogOpen(true);
     };
 
-    const handleEditFormChange = (
+    const handleEditFormChange = ( 
         field: keyof Sale,
         value: string | number
     ) => {
         const updated = { ...editForm, [field]: value };
 
         if (field === "quantity" || field === "unitPrice") {
+            // Recalculo seguro del total
             const quantity = typeof updated.quantity === 'number' ? updated.quantity : parseFloat(updated.quantity as string) || 0;
             const unitPrice = typeof updated.unitPrice === 'number' ? updated.unitPrice : parseFloat(updated.unitPrice as string) || 0;
             updated.total = quantity * unitPrice;
@@ -213,8 +216,8 @@ export default function ConsultSales() {
         0
     );
     const customers = [...new Set(sales.map((s) => s.customer))];
-
-    // ----------------------------- RENDER ----------------------------------
+    
+    // ----------------------------- RENDER (Basado en la estructura de las fuentes) ----------------------------------
     return (
         <div className="min-h-screen bg-gradient-to-br from-background
 via-background to-secondary/20 p-4 md:p-6">
@@ -277,7 +280,7 @@ gap-4">
                                             )}
                                         >
                                             <CalendarIcon className="mr-2 h-4 w-4" />
-                                            {startDate ? format(startDate, "dd/MM/yyyy") : "Selecciona fecha"}
+                                            {startDate ? format(startDate, "dd/MM/yyyy") : "Seleccionar fecha"}
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent align="start" className="w-auto p-0">
