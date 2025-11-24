@@ -52,9 +52,11 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
+
 // Servicio real
 import { getSales } from "@/services/salesService";
 
+// ---------- Tipos de datos corregidos ----------
 interface Sale {
     id: string;
     product: string;
@@ -74,6 +76,7 @@ export default function ConsultSales() {
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
+
     const [editForm, setEditForm] = useState<Sale>({
         id: "",
         product: "",
@@ -83,9 +86,10 @@ export default function ConsultSales() {
         date: "",
         customer: "",
     });
+
     const { toast } = useToast();
 
-    // ---------- FORMATEADOR DE MONEDA ----------
+    // ---------- Formateador de moneda ----------
     const formatCurrency = (amount: number) =>
         new Intl.NumberFormat("es-CO", {
             style: "currency",
@@ -93,34 +97,29 @@ export default function ConsultSales() {
             minimumFractionDigits: 0,
         }).format(amount);
 
-    // ---------- CARGA DE VENTAS DESDE BACKEND (LÓGICA CORREGIDA) ----------
+    // ---------- Cargar ventas desde backend (MAPEO CORREGIDO) ----------
     const fetchSales = async () => {
         try {
-            const { data } = await getSales(); 
+            const { data } = await getSales();
 
             const mapped: Sale[] = data.map((item: any) => {
-                
-                const detailsArray = item.details;
-                const detail = detailsArray && detailsArray.length > 0 ? detailsArray : {}; 
-                
-                // Extraemos los campos del SaleDetailDTO
-                const productName = detail.productName ?? "Producto Desconocido"; 
-                const unitPrice = detail.unitPrice ?? 0; 
-                const quantity = detail.amount ?? 0; // 'amount' es el campo de cantidad [5-8]
+                // OJO → El backend devuelve "details" como arreglo
+                const detail = item.details?.[0] ?? {};
 
                 return {
-                    id: item.saleId ? item.saleId.toString() : item.id,
-                    product: productName,
-                    quantity: quantity,
-                    unitPrice: unitPrice,
-                    total: item.total, 
+                    id: item.id?.toString() ?? "",
+                    product: detail.productName ?? "Producto Desconocido",
+                    quantity: detail.amount ?? detail.quantity ?? 0,
+                    unitPrice: detail.unitPrice ?? detail.price ?? 0,
+                    total: item.totalAmount ?? item.total ?? 0,
                     date: item.date,
-                    customer: item.customerName ?? "Cliente", 
+                    customer: item.customerName ?? item.client?.name ?? "Cliente",
                 };
             });
 
             setSales(mapped);
             setFilteredSales(mapped);
+
         } catch (error) {
             toast({
                 title: "Error al cargar ventas",
@@ -129,22 +128,29 @@ export default function ConsultSales() {
             });
         }
     };
-    
+
     useEffect(() => {
         fetchSales();
     }, []);
 
-    // ---------- FILTROS ----------
+
+    // ---------- Filtros ----------
     const handleFilter = () => {
         let filtered = [...sales];
+
         if (selectedCustomer)
             filtered = filtered.filter((s) => s.customer === selectedCustomer);
+
         if (startDate)
             filtered = filtered.filter(
                 (s) => new Date(s.date) >= new Date(startDate)
             );
+
         if (endDate)
-            filtered = filtered.filter((s) => new Date(s.date) <= new Date(endDate));
+            filtered = filtered.filter(
+                (s) => new Date(s.date) <= new Date(endDate)
+            );
+
         setFilteredSales(filtered);
     };
 
@@ -155,27 +161,27 @@ export default function ConsultSales() {
         setFilteredSales(sales);
     };
 
-    // ---------- EDICIÓN ----------
+
+    // ---------- Edición ----------
     const handleEditClick = (sale: Sale) => {
         setSelectedSale(sale);
         setEditForm(sale);
         setEditDialogOpen(true);
     };
 
-    const handleEditFormChange = (
-        field: keyof Sale,
-        value: string | number
-    ) => {
+    const handleEditFormChange = (field: keyof Sale, value: any) => {
         const updated = { ...editForm, [field]: value };
+
         if (field === "quantity" || field === "unitPrice") {
-            const quantity = typeof updated.quantity === 'number' ? updated.quantity : parseFloat(updated.quantity as string) || 0;
-            const unitPrice = typeof updated.unitPrice === 'number' ? updated.unitPrice : parseFloat(updated.unitPrice as string) || 0;
-            updated.total = quantity * unitPrice; 
+            const quantity = parseFloat(updated.quantity as any) || 0;
+            const unitPrice = parseFloat(updated.unitPrice as any) || 0;
+            updated.total = quantity * unitPrice;
         }
-        setEditForm(updated); 
+
+        setEditForm(updated);
     };
 
-    const handleEditSubmit = () => { 
+    const handleEditSubmit = () => {
         if (!selectedSale) return;
         const updated = sales.map((s) =>
             s.id === selectedSale.id ? editForm : s
@@ -189,7 +195,8 @@ export default function ConsultSales() {
         setEditDialogOpen(false);
     };
 
-    // ---------- ELIMINACIÓN ----------
+
+    // ---------- Eliminación ----------
     const handleDeleteClick = (sale: Sale) => {
         setSelectedSale(sale);
         setDeleteDialogOpen(true);
@@ -207,34 +214,35 @@ export default function ConsultSales() {
         setDeleteDialogOpen(false);
     };
 
+
+    // ---------- Totales ----------
     const totalAmount = filteredSales.reduce(
         (sum, s) => sum + s.total,
         0
     );
+
     const customers = [...new Set(sales.map((s) => s.customer))];
-    
-    // ----------------------------- RENDER (Completo) ----------------------------------
+
+
+    // ----------------------------------------------------------------------
+    // ----------------------------- RENDER -----------------------------------
+    // ----------------------------------------------------------------------
     return (
-        <div className="min-h-screen bg-gradient-to-br from-background
-via-background to-secondary/20 p-4 md:p-6">
+        <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 p-4 md:p-6">
             <div className="mx-auto max-w-7xl space-y-6">
 
-                {/* ------------------------ HEADER ------------------------------ */}
+                {/* HEADER */}
                 <div className="text-center space-y-2">
-                    <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r
-from-primary via-primary to-accent bg-clip-text text-transparent">
+                    <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">
                         Consultar Ventas
                     </h1>
-                    <p className="text-muted-foreground text-sm md:text-base
-max-w-2xl mx-auto">
-                        Filtra las ventas por cliente o fecha para consultar el historial de tu
-                        tienda.
+                    <p className="text-muted-foreground text-sm md:text-base max-w-2xl mx-auto">
+                        Filtra las ventas por cliente o fecha para consultar el historial de tu tienda.
                     </p>
                 </div>
 
-                {/* ------------------------ FILTROS ------------------------------ */}
-                <Card className="border-border/50 shadow-lg bg-card/80
-backdrop-blur-sm">
+                {/* FILTROS */}
+                <Card className="border-border/50 shadow-lg bg-card/80 backdrop-blur-sm">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-lg">
                             <Filter className="h-5 w-5 text-primary" />
@@ -242,8 +250,8 @@ backdrop-blur-sm">
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4
-gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
                             {/* Cliente */}
                             <div className="space-y-2">
                                 <Label>Cliente</Label>
@@ -263,7 +271,8 @@ gap-4">
                                     </SelectContent>
                                 </Select>
                             </div>
-                            {/* Fecha Inicial */}
+
+                            {/* Fecha inicial */}
                             <div className="space-y-2">
                                 <Label>Fecha Inicial</Label>
                                 <Popover>
@@ -289,7 +298,8 @@ gap-4">
                                     </PopoverContent>
                                 </Popover>
                             </div>
-                            {/* Fecha Final */}
+
+                            {/* Fecha final */}
                             <div className="space-y-2">
                                 <Label>Fecha Final</Label>
                                 <Popover>
@@ -302,7 +312,7 @@ gap-4">
                                             )}
                                         >
                                             <CalendarIcon className="mr-2 h-4 w-4" />
-                                            {endDate ? format(endDate, "dd/MM/yyyy") : "Seleccionarfecha"}
+                                            {endDate ? format(endDate, "dd/MM/yyyy") : "Seleccionar fecha"}
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent align="start" className="w-auto p-0">
@@ -314,55 +324,59 @@ gap-4">
                                     </PopoverContent>
                                 </Popover>
                             </div>
-                            {/* Botones */}
+
+                            {/* Botones de filtros */}
                             <div className="space-y-2 flex flex-col justify-end">
                                 <Button onClick={handleFilter} className="h-12">
                                     <Search className="mr-2 h-4 w-4" />
                                     Filtrar
                                 </Button>
-                                <Button variant="outline" onClick={clearFilters}
-                                    className="h-10">
+                                <Button variant="outline" onClick={clearFilters} className="h-10">
                                     Limpiar
                                 </Button>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
-                
-                {/* ---------------------- RESUMEN -------------------------- */}
+
+
+                {/* RESUMEN */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <Card className="shadow-md">
                         <CardContent className="p-4 text-center">
-                            <p className="text-2xl font-bold
-                            text-primary">{filteredSales.length}</p>
-                            <p className="text-muted-foreground text-sm">Ventas
-                            encontradas</p>
+                            <p className="text-2xl font-bold text-primary">
+                                {filteredSales.length}
+                            </p>
+                            <p className="text-muted-foreground text-sm">Ventas encontradas</p>
                         </CardContent>
                     </Card>
+
                     <Card className="shadow-md">
                         <CardContent className="p-4 text-center">
-                            <p className="text-2xl font-bold
-                            text-primary">{formatCurrency(totalAmount)}</p>
-                            <p className="text-muted-foreground text-sm">Total
-                            vendido</p>
+                            <p className="text-2xl font-bold text-primary">
+                                {formatCurrency(totalAmount)}
+                            </p>
+                            <p className="text-muted-foreground text-sm">Total vendido</p>
                         </CardContent>
                     </Card>
+
                     <Card className="shadow-md">
                         <CardContent className="p-4 text-center">
                             <p className="text-2xl font-bold text-primary">
                                 {filteredSales.reduce((sum, s) => sum + s.quantity, 0)}
                             </p>
-                            <p className="text-muted-foreground text-sm">Productos
-                            vendidos</p>
+                            <p className="text-muted-foreground text-sm">Productos vendidos</p>
                         </CardContent>
                     </Card>
                 </div>
 
-                {/* ---------------------- TABLA -------------------------- */}
+
+                {/* TABLA */}
                 <Card className="shadow-lg">
                     <CardHeader>
-                        <CardTitle className="text-xl">Resultados de la
-                        Consulta</CardTitle>
+                        <CardTitle className="text-xl">
+                            Resultados de la Consulta
+                        </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="rounded-lg border overflow-hidden">
@@ -372,32 +386,39 @@ gap-4">
                                         <TableHead>Producto</TableHead>
                                         <TableHead>Cliente</TableHead>
                                         <TableHead className="text-right">Cantidad</TableHead>
-                                        <TableHead className="text-right">Precio
-                                        Unitario</TableHead>
+                                        <TableHead className="text-right">Precio Unitario</TableHead>
                                         <TableHead className="text-right">Total</TableHead>
                                         <TableHead className="text-center">Fecha</TableHead>
                                         <TableHead className="text-center">Acciones</TableHead>
                                     </TableRow>
                                 </TableHeader>
+
                                 <TableBody>
                                     {filteredSales.length > 0 ? (
                                         filteredSales.map((sale) => (
                                             <TableRow key={sale.id}>
                                                 <TableCell>{sale.product}</TableCell>
+
                                                 <TableCell className="text-muted-foreground">
                                                     {sale.customer}
                                                 </TableCell>
-                                                <TableCell
-                                                    className="text-right">{sale.quantity}</TableCell>
+
+                                                <TableCell className="text-right">
+                                                    {sale.quantity}
+                                                </TableCell>
+
                                                 <TableCell className="text-right">
                                                     {formatCurrency(sale.unitPrice)}
                                                 </TableCell>
+
                                                 <TableCell className="text-right font-semibold">
                                                     {formatCurrency(sale.total)}
                                                 </TableCell>
+
                                                 <TableCell className="text-center">
                                                     {format(new Date(sale.date), "dd/MM/yyyy")}
                                                 </TableCell>
+
                                                 <TableCell className="text-center">
                                                     <div className="flex justify-center gap-2">
                                                         <Button
@@ -408,6 +429,7 @@ gap-4">
                                                         >
                                                             <Pencil className="h-4 w-4" />
                                                         </Button>
+
                                                         <Button
                                                             size="icon"
                                                             variant="ghost"
@@ -435,9 +457,10 @@ gap-4">
                         </div>
                     </CardContent>
                 </Card>
+
             </div>
 
-            {/* ---------------------- EDITAR DIALOG -------------------------- */}
+            {/* ---------------- EDITAR DIALOG ---------------- */}
             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
                 <DialogContent className="sm:max-w-[600px]">
                     <DialogHeader>
@@ -446,7 +469,9 @@ gap-4">
                             Edita los detalles de la venta. El total se calcula automáticamente.
                         </DialogDescription>
                     </DialogHeader>
+
                     <div className="grid gap-4 py-4">
+
                         {/* Producto */}
                         <div className="space-y-2">
                             <Label>Producto</Label>
@@ -457,7 +482,8 @@ gap-4">
                                 }
                             />
                         </div>
-                        {/* Cantidad y precio unitario */}
+
+                        {/* Cantidad y precio */}
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label>Cantidad</Label>
@@ -486,6 +512,7 @@ gap-4">
                                 />
                             </div>
                         </div>
+
                         {/* Cliente */}
                         <div className="space-y-2">
                             <Label>Cliente</Label>
@@ -496,6 +523,7 @@ gap-4">
                                 }
                             />
                         </div>
+
                         {/* Fecha */}
                         <div className="space-y-2">
                             <Label>Fecha</Label>
@@ -507,36 +535,40 @@ gap-4">
                                 }
                             />
                         </div>
+
                         {/* Total */}
                         <div className="space-y-2">
                             <Label>Total Calculado</Label>
-                            <div className="h-10 px-3 py-2 bg-muted border rounded-md flex
-                            items-center font-semibold">
+                            <div className="h-10 px-3 py-2 bg-muted border rounded-md flex items-center font-semibold">
                                 {formatCurrency(editForm.total)}
                             </div>
                         </div>
+
                     </div>
+
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
                             Cancelar
                         </Button>
-                        <Button onClick={handleEditSubmit}>Guardar Cambios</Button>
+                        <Button onClick={handleEditSubmit}>
+                            Guardar Cambios
+                        </Button>
                     </DialogFooter>
+
                 </DialogContent>
             </Dialog>
 
-            {/* ---------------------- ELIMINAR DIALOG -------------------------- */}
-            <AlertDialog open={deleteDialogOpen}
-                onOpenChange={setDeleteDialogOpen}>
+            {/* ---------------- ELIMINAR DIALOG ---------------- */}
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>¿Estas seguro?</AlertDialogTitle>
+                        <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
                         <AlertDialogDescription>
                             Vas a eliminar la venta de{" "}
-                            <strong>{selectedSale?.product}</strong>. Esta acción no se
-                            puede deshacer.
+                            <strong>{selectedSale?.product}</strong>. Esta acción no se puede deshacer.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
+
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
                         <AlertDialogAction
@@ -546,8 +578,10 @@ gap-4">
                             Eliminar
                         </AlertDialogAction>
                     </AlertDialogFooter>
+
                 </AlertDialogContent>
             </AlertDialog>
+
         </div>
     );
 }
