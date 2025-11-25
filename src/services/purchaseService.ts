@@ -1,49 +1,50 @@
 import axios from "axios";
 
-// Usa la URL del backend definida en .env o en Vercel
-const API_URL = import.meta.env.VITE_API_URL + "/api/purchases"; 
+const API_URL = import.meta.env.VITE_API_URL + "/api/purchases";
 
-/**
- * Función auxiliar para incluir el token JWT en los encabezados
- */
 const authHeader = () => {
     const token = localStorage.getItem("token");
     return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
-/**
- * Obtener todas las compras del backend
- * Se mapean los nombres reales de la API (PurchaseDTO) al formato que
- * usa el frontend (Purchase)
- */
 export const getPurchases = async () => {
     try {
         const response = await axios.get(API_URL, {
             headers: { ...authHeader() },
         });
-        
-        // Adaptamos los datos al formato que la tabla espera
+
         const purchases = response.data.map((p: any) => {
             const detailsList = Array.isArray(p.details) ? p.details : [];
-            const singleDetail = detailsList.length > 0 ? detailsList : {};
-            const productName = singleDetail.productName ?? "Sin producto";
-            const supplierName = p.supplierName ?? "Sin proveedor"; 
-            const quantity = Number(singleDetail.amount ?? 0);
-            const unitPrice = Number(singleDetail.unitPrice ?? 0); 
-            const total = Number(p.total ?? unitPrice * quantity); 
-            const date = p.date ? new Date(p.date).toISOString().split("T") : ""; 
+
+            // 🔥 CORRECCIÓN CRÍTICA: tomar el PRIMER DETALLE, no el array
+            const singleDetail = detailsList.length > 0 ? detailsList[0] : null;
+
+            const productName = singleDetail?.productName ?? "Sin producto";
+            const quantity = Number(singleDetail?.amount ?? 0);
+            const unitPrice = Number(singleDetail?.unitPrice ?? 0);
+
+            // total real
+            const total = Number(p.total ?? quantity * unitPrice);
+
+            // 🔥 CORREGIDO → deja la fecha RAW como string
+            const date = p.date;
+
+            // 🔥 supplierId → supplierName temporal
+            const supplierName = "Proveedor " + p.supplierId;
 
             return {
                 id: p.id,
                 product: productName,
                 supplier: supplierName,
                 quantity,
-                unitPrice, 
+                unitPrice,
                 total,
                 date,
             };
         });
+
         return purchases;
+
     } catch (error: any) {
         console.error("Error al obtener las compras:", error);
         throw new Error(
@@ -52,11 +53,6 @@ export const getPurchases = async () => {
     }
 };
 
-/**
- * Crear una nueva compra
- * @param purchaseData Objeto con los datos de la compra (debe
- * coincidir con PurchaseDTO)
- */
 export const createPurchase = async (purchaseData: any) => {
     try {
         const response = await axios.post(API_URL, purchaseData, {
@@ -68,22 +64,15 @@ export const createPurchase = async (purchaseData: any) => {
         return response.data;
     } catch (error: any) {
         console.error("Error al crear la compra:", error);
-        // Propaga el mensaje de error descriptivo del backend [18, 19]
         throw new Error(
             error.response?.data?.message || "Error al crear la compra"
         );
     }
 };
 
-/**
- * Actualizar una compra existente
- * @param id ID de la compra a actualizar
- * @param purchaseData Datos actualizados de la compra
- */
 export const updatePurchase = async (id: string | number, purchaseData: any) => {
     try {
-        const response = await axios.put(`${API_URL}/${Number(id)}`,
-            purchaseData, {
+        const response = await axios.put(`${API_URL}/${Number(id)}`, purchaseData, {
             headers: {
                 "Content-Type": "application/json",
                 ...authHeader(),
@@ -98,10 +87,6 @@ export const updatePurchase = async (id: string | number, purchaseData: any) => 
     }
 };
 
-/**
- * Eliminar una compra
- * @param id ID de la compra a eliminar
- */
 export const deletePurchase = async (id: string | number) => {
     try {
         const response = await axios.delete(`${API_URL}/${Number(id)}`, {
