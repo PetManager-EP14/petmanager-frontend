@@ -47,3 +47,23 @@ export const getPurchases = async () => {
         );
     }
 };
+
+/**
+ * Crear una nueva compra
+ */
+export const createPurchase = async (purchaseData: any) => {
+    try {
+        const response = await axios.post(API_URL, purchaseData, {
+            headers: {
+                "Content-Type": "application/json",
+                ...authHeader(),
+            },
+        });
+        return response.data;
+    } catch (error: any) {
+        console.error("Error al crear la compra:", error);
+        throw new Error(
+            error.response?.data?.message || "Error al crear la compra"
+        );
+    }
+};

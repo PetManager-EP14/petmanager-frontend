@@ -122,7 +122,7 @@ export default function CreatePurchase() {
             quantity: Number(formData.quantity),
             price: Number(formData.unitPrice),
             total: Number(formData.quantity) * Number(formData.unitPrice),
-            date: formData.date.toISOString().split("T"), // yyyy-MM-dd 
+            date: formData.date.toISOString().split("T")[0],
         };
 
         try {
