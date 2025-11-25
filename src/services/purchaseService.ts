@@ -67,3 +67,42 @@ export const createPurchase = async (purchaseData: any) => {
         );
     }
 };
+
+/**
+ * Actualizar una compra existente (updatePurchase)
+ */
+export const updatePurchase = async (id: string | number, purchaseData: any) => { 
+    try {
+        const response = await axios.put(`${API_URL}/${Number(id)}`, purchaseData, { 
+            headers: {
+                "Content-Type": "application/json", 
+                ...authHeader(), 
+            },
+        });
+        return response.data; 
+    } catch (error: any) {
+        console.error("Error al actualizar la compra:", error); 
+        throw new Error(
+            error.response?.data?.message || "Error al actualizar la compra" 
+        );
+    }
+};
+
+/**
+ * Eliminar una compra (deletePurchase)
+ */
+export const deletePurchase = async (id: string | number) => { 
+    try {
+        const response = await axios.delete(`${API_URL}/${Number(id)}`, {   
+            headers: {
+                ...authHeader(),     
+            },
+        });
+        return response.data; 
+    } catch (error: any) {
+        console.error("Error al eliminar la compra:", error); 
+        throw new Error(
+            error.response?.data?.message || "Error al eliminar la compra"
+        );
+    }
+};
