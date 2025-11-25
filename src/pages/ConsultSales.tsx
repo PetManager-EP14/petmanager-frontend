@@ -107,7 +107,7 @@ export default function ConsultSales() {
                 const detail = item.details?.[0] ?? {};
 
                 return {
-                    id: item.id?.toString() ?? "",
+                    id: item.saleId ? item.saleId.toString() : "",
                     product: detail.productName ?? "Producto Desconocido",
                     quantity: detail.amount ?? detail.quantity ?? 0,
                     unitPrice: detail.unitPrice ?? detail.price ?? 0,
