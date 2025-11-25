@@ -1,4 +1,4 @@
-import { useState } from "react"; 
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,331 +12,350 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
-
-//  IMPORTACIÓN NECESARIA PARA INTEGRACIÓN CON BACKEND
+// IMPORTACIÓN NECESARIA PARA INTEGRACIÓN CON BACKEND [8]
 import { createSale } from "@/services/salesService";
 
 interface Sale {
-  id: string;
-  product: string;
-  quantity: number;
-  unitPrice: number;
-  total: number;
-  date: string;
-  customer: string;
+    id: string;
+    product: string;
+    quantity: number;
+    unitPrice: number;
+    total: number;
+    date: string;
+    customer: string;
 }
 
+// Datos de ejemplo para el panel de "Últimas Ventas" [9, 10]
 const mockRecentSales: Sale[] = [
-  {
-    id: "1",
-    product: "Alimento Premium para Perro Royal Canin 15kg",
-    quantity: 2,
-    unitPrice: 250000,
-    total: 500000,
-    date: "2024-01-15",
-    customer: "Carlos Rodríguez"
-  },
-  {
-    id: "2",
-    product: "Juguete Kong Classic Mediano",
-    quantity: 1,
-    unitPrice: 65000,
-    total: 65000,
-    date: "2024-01-14",
-    customer: "María González"
-  },
-  {
-    id: "3",
-    product: "Collar LED Recargable para Perro",
-    quantity: 1,
-    unitPrice: 55000,
-    total: 55000,
-    date: "2024-01-13",
-    customer: "Jorge Martínez"
-  }
+    {
+        id: "1",
+        product: "Alimento Premium para Perro Royal Canin 15kg",
+        quantity: 2,
+        unitPrice: 250000,
+        total: 500000,
+        date: "2024-01-15",
+        customer: "Carlos Rodríguez"
+    },
+    {
+        id: "2",
+        product: "Juguete Kong Classic Mediano",
+        quantity: 1,
+        unitPrice: 65000,
+        total: 65000,
+        date: "2024-01-14",
+        customer: "María González"
+    },
+    {
+        id: "3",
+        product: "Collar LED Recargable para Perro",
+        quantity: 1,
+        unitPrice: 55000,
+        total: 55000,
+        date: "2024-01-13",
+        customer: "Jorge Martínez"
+    }
 ];
 
+// Lista de clientes de ejemplo [10]
 const customers = [
-  "Carlos Rodríguez",
-  "María González", 
-  "Jorge Martínez",
-  "Ana Pérez",
-  "Luis Torres"
+    "Carlos Rodríguez",
+    "María González",
+    "Jorge Martínez",
+    "Ana Pérez",
+    "Luis Torres"
 ];
 
 export default function CreateSale() {
-  const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    product: "",
-    quantity: "",
-    unitPrice: "",
-    customer: "",
-    date: undefined as Date | undefined
-  });
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleDateSelect = (date: Date | undefined) => {
-    setFormData(prev => ({ ...prev, date }));
-  };
-
-  //  REEMPLAZO DEL handleSubmit — AHORA CON BACKEND REAL 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.product || !formData.quantity || !formData.unitPrice || !formData.customer || !formData.date) {
-      toast({
-        title: "Error",
-        description: "Por favor complete todos los campos",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      const salePayload = {
-        product: formData.product,
-        quantity: Number(formData.quantity),
-        unitPrice: Number(formData.unitPrice),
-        customer: formData.customer,
-        date: formData.date.toISOString().split("T")[0], // yyyy-MM-dd
-        total: Number(formData.quantity) * Number(formData.unitPrice)
-      };
-
-      await createSale(salePayload);
-
-      toast({
-        title: "Venta creada",
-        description: `Venta de ${formData.product} registrada exitosamente`,
-      });
-
-      setFormData({
+    const navigate = useNavigate();
+    const [formData, setFormData] = useState({
         product: "",
         quantity: "",
         unitPrice: "",
         customer: "",
-        date: undefined
-      });
+        date: undefined as Date | undefined
+    });
 
-    } catch (error) {
-      console.error("Error creando venta:", error);
-      toast({
-        title: "Error al registrar la venta",
-        description: "No se pudo registrar en el servidor",
-        variant: "destructive"
-      });
-    }
-  };
+    const handleInputChange = (field: string, value: string) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
 
-  const handleCancel = () => {
-    navigate("/dashboard");
-  };
+    const handleDateSelect = (date: Date | undefined) => {
+        setFormData(prev => ({ ...prev, date }));
+    };
 
-  const calculateTotal = () => {
-    const quantity = parseFloat(formData.quantity) || 0;
-    const unitPrice = parseFloat(formData.unitPrice) || 0;
-    return quantity * unitPrice;
-  };
+    // Lógica integrada de envío del formulario (API call y manejo de errores) [2]
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        // 1. Validación de campos obligatorios [2, 3]
+        if (!formData.product || !formData.quantity || !formData.unitPrice ||
+            !formData.customer || !formData.date) {
+            toast({
+                title: "Error",
+                description: "Por favor complete todos los campos",
+                variant: "destructive"
+            });
+            return;
+        }
+        
+        try {
+            // 2. Preparar el cuerpo de la solicitud (Payload plano) [3]
+            const salePayload = {
+                product: formData.product,
+                quantity: Number(formData.quantity),
+                unitPrice: Number(formData.unitPrice),
+                customer: formData.customer,
+                date: formData.date.toISOString().split("T"), // yyyy-MM-dd
+                total: Number(formData.quantity) * Number(formData.unitPrice)
+            };
+            
+            // 3. Llamada al servicio real [3]
+            await createSale(salePayload);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
+            toast({
+                title: "Venta creada",
+                description: `Venta de ${formData.product} registrada exitosamente`,
+            });
 
-  return (
-    <div className="min-h-screen bg-pet-background">
-      <div className="container mx-auto px-6 py-8 max-w-7xl">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-pet-text-primary mb-2">
-            Crear Venta
-          </h1>
-          <p className="text-pet-text-secondary text-lg">
-            Registra una nueva venta en el sistema
-          </p>
-        </div>
+            // 4. Resetear formulario [11]
+            setFormData({
+                product: "",
+                quantity: "",
+                unitPrice: "",
+                customer: "",
+                date: undefined
+            });
 
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-          <div className="xl:col-span-2">
-            <Card className="shadow-lg border-0 bg-card backdrop-blur-sm">
-              <CardHeader className="bg-muted rounded-t-lg">
-                <CardTitle className="text-2xl font-bold text-card-foreground">
-                  Información de la Venta
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-8">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        } catch (error) {
+            console.error("Error creando venta:", error);
+            // Manejo de errores [11, 12]
+            toast({
+                title: "Error al registrar la venta",
+                description: "No se pudo registrar en el servidor",
+                variant: "destructive"
+            });
+        }
+    };
 
-                    <div className="space-y-2">
-                      <Label htmlFor="product" className="text-foreground font-medium text-base">
-                        Producto *
-                      </Label>
-                      <Input
-                        id="product"
-                        placeholder="Ej: Alimento Premium para Perro Royal Canin 15kg"
-                        value={formData.product}
-                        onChange={(e) => handleInputChange("product", e.target.value)}
-                        className="h-12 rounded-lg shadow-sm"
-                      />
-                    </div>
+    const handleCancel = () => {
+        navigate("/dashboard");
+    };
 
-                    <div className="space-y-2">
-                      <Label htmlFor="customer" className="text-foreground font-medium text-base">
-                        Cliente *
-                      </Label>
-                      <Select value={formData.customer} onValueChange={(value) => handleInputChange("customer", value)}>
-                        <SelectTrigger className="h-12 rounded-lg shadow-sm">
-                          <SelectValue placeholder="Seleccionar cliente" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {customers.map((customer) => (
-                            <SelectItem key={customer} value={customer}>
-                              {customer}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+    // Función para calcular el total [12]
+    const calculateTotal = () => {
+        const quantity = parseFloat(formData.quantity) || 0;
+        const unitPrice = parseFloat(formData.unitPrice) || 0;
+        return quantity * unitPrice;
+    };
 
-                    <div className="space-y-2">
-                      <Label htmlFor="quantity" className="text-foreground font-medium text-base">
-                        Cantidad *
-                      </Label>
-                      <Input
-                        id="quantity"
-                        type="number"
-                        placeholder="5"
-                        min="1"
-                        value={formData.quantity}
-                        onChange={(e) => handleInputChange("quantity", e.target.value)}
-                        className="h-12 rounded-lg shadow-sm"
-                      />
-                    </div>
+    // Función de formato de moneda [12]
+    const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat('es-CO', {
+            style: 'currency',
+            currency: 'COP',
+            minimumFractionDigits: 0
+        }).format(amount);
+    };
 
-                    <div className="space-y-2">
-                      <Label htmlFor="unitPrice" className="text-foreground font-medium text-base">
-                        Precio Unitario (COP) *
-                      </Label>
-                      <Input
-                        id="unitPrice"
-                        type="number"
-                        placeholder="250000"
-                        min="0"
-                        step="1000"
-                        value={formData.unitPrice}
-                        onChange={(e) => handleInputChange("unitPrice", e.target.value)}
-                        className="h-12 rounded-lg shadow-sm"
-                      />
-                    </div>
-
-                    <div className="space-y-2 md:col-span-1">
-                      <Label className="text-foreground font-medium text-base">
-                        Fecha de Venta *
-                      </Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full h-12 justify-start text-left font-normal rounded-lg shadow-sm",
-                              !formData.date && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {formData.date ? format(formData.date, "PPP") : "Seleccionar fecha"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={formData.date}
-                            onSelect={handleDateSelect}
-                            initialFocus
-                            className="p-3 pointer-events-auto"
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-foreground font-medium text-base">
-                        Total Calculado
-                      </Label>
-                      <div className="h-12 px-4 py-2 bg-muted border border-border rounded-lg flex items-center text-foreground font-semibold text-lg">
-                        {formatCurrency(calculateTotal())}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row gap-4 pt-6">
-                    <Button
-                      type="submit"
-                      className="flex-1 h-12 bg-accent hover:bg-accent/90 text-accent-foreground font-medium text-lg rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
-                    >
-                      Guardar Venta
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleCancel}
-                      className="flex-1 h-12 font-medium text-lg rounded-lg"
-                    >
-                      Cancelar
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="xl:col-span-1">
-            <Card className="shadow-lg border-0 bg-card backdrop-blur-sm h-fit">
-              <CardHeader className="bg-muted rounded-t-lg">
-                <CardTitle className="text-xl font-bold text-card-foreground">
-                  Últimas Ventas
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="overflow-hidden rounded-lg border border-border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-muted">
-                        <TableHead className="font-semibold text-foreground">Producto</TableHead>
-                        <TableHead className="font-semibold text-foreground">Cantidad</TableHead>
-                        <TableHead className="font-semibold text-foreground">Total</TableHead>
-                        <TableHead className="font-semibold text-foreground">Fecha</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {mockRecentSales.map((sale) => (
-                        <TableRow key={sale.id} className="hover:bg-muted/50 transition-colors">
-                          <TableCell className="font-medium text-foreground">
-                            {sale.product}
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {sale.quantity}
-                          </TableCell>
-                          <TableCell className="text-muted-foreground font-medium">
-                            {formatCurrency(sale.total)}
-                          </TableCell>
-                          <TableCell className="text-muted-foreground text-sm">
-                            {format(new Date(sale.date), "dd/MM/yyyy")}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+    return (
+        <div className="min-h-screen bg-pet-background">
+            <div className="container mx-auto px-6 py-8 max-w-7xl">
+                {/* Header */}
+                <div className="mb-8">
+                    <h1 className="text-4xl font-bold text-pet-text-primary mb-2">
+                        Crear Venta
+                    </h1>
+                    <p className="text-pet-text-secondary text-lg">
+                        Registra una nueva venta en el sistema
+                    </p>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+                
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                    {/* Form Section (Columna 1 y 2) [13] */}
+                    <div className="xl:col-span-2">
+                        <Card className="shadow-lg border-0 bg-card backdrop-blur-sm">
+                            <CardHeader className="bg-muted rounded-t-lg">
+                                <CardTitle className="text-2xl font-bold text-card-foreground">
+                                    Información de la Venta
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-8">
+                                <form onSubmit={handleSubmit} className="space-y-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        
+                                        {/* Producto [14, 15] */}
+                                        <div className="space-y-2">
+                                            <Label htmlFor="product" className="text-foreground font-medium text-base">
+                                                Producto *
+                                            </Label>
+                                            <Input
+                                                id="product"
+                                                placeholder="Ej: Alimento Premium para Perro Royal Canin 15kg"
+                                                value={formData.product}
+                                                onChange={(e) => handleInputChange("product", e.target.value)}
+                                                className="h-12 rounded-lg shadow-sm"
+                                            />
+                                        </div>
+
+                                        {/* Cliente [16, 17] */}
+                                        <div className="space-y-2">
+                                            <Label htmlFor="customer" className="text-foreground font-medium text-base">
+                                                Cliente *
+                                            </Label>
+                                            <Select value={formData.customer} onValueChange={(value) => handleInputChange("customer", value)}>
+                                                <SelectTrigger className="h-12 rounded-lg shadow-sm">
+                                                    <SelectValue placeholder="Seleccionar cliente" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {customers.map((customer) => (
+                                                        <SelectItem key={customer} value={customer}>
+                                                            {customer}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+
+                                        {/* Cantidad [17, 18] */}
+                                        <div className="space-y-2">
+                                            <Label htmlFor="quantity" className="text-foreground font-medium text-base">
+                                                Cantidad *
+                                            </Label>
+                                            <Input
+                                                id="quantity"
+                                                type="number"
+                                                placeholder="5"
+                                                min="1"
+                                                value={formData.quantity}
+                                                onChange={(e) => handleInputChange("quantity", e.target.value)}
+                                                className="h-12 rounded-lg shadow-sm"
+                                            />
+                                        </div>
+
+                                        {/* Precio Unitario [19, 20] */}
+                                        <div className="space-y-2">
+                                            <Label htmlFor="unitPrice" className="text-foreground font-medium text-base">
+                                                Precio Unitario (COP) *
+                                            </Label>
+                                            <Input
+                                                id="unitPrice"
+                                                type="number"
+                                                placeholder="250000"
+                                                min="0"
+                                                step="1000"
+                                                value={formData.unitPrice}
+                                                onChange={(e) => handleInputChange("unitPrice", e.target.value)}
+                                                className="h-12 rounded-lg shadow-sm"
+                                            />
+                                        </div>
+
+                                        {/* Fecha de Venta [20] */}
+                                        <div className="space-y-2 md:col-span-1">
+                                            <Label className="text-foreground font-medium text-base">
+                                                Fecha de Venta *
+                                            </Label>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        variant="outline"
+                                                        className={cn(
+                                                            "w-full h-12 justify-start text-left font-normal rounded-lg shadow-sm",
+                                                            !formData.date && "text-muted-foreground"
+                                                        )}
+                                                    >
+                                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                                        {formData.date ? format(formData.date, "PPP") : "Seleccionar fecha"}
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto p-0" align="start">
+                                                    <Calendar
+                                                        mode="single"
+                                                        selected={formData.date}
+                                                        onSelect={handleDateSelect}
+                                                        initialFocus
+                                                        className="p-3 pointer-events-auto"
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
+                                        </div>
+                                        
+                                        {/* Total Calculado [21] */}
+                                        <div className="space-y-2">
+                                            <Label className="text-foreground font-medium text-base">
+                                                Total Calculado
+                                            </Label>
+                                            <div className="h-12 px-4 py-2 bg-muted border border-border rounded-lg flex items-center text-foreground font-semibold text-lg">
+                                                {formatCurrency(calculateTotal())}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Buttons [22, 23] */}
+                                    <div className="flex flex-col sm:flex-row gap-4 pt-6">
+                                        <Button
+                                            type="submit"
+                                            className="flex-1 h-12 bg-accent hover:bg-accent/90 text-accent-foreground font-medium text-lg rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
+                                        >
+                                            Guardar Venta
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={handleCancel}
+                                            className="flex-1 h-12 font-medium text-lg rounded-lg"
+                                        >
+                                            Cancelar
+                                        </Button>
+                                    </div>
+                                </form>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Últimas Ventas (Columna 3) [23] */}
+                    <div className="xl:col-span-1">
+                        <Card className="shadow-lg border-0 bg-card backdrop-blur-sm h-fit">
+                            <CardHeader className="bg-muted rounded-t-lg">
+                                <CardTitle className="text-xl font-bold text-card-foreground">
+                                    Últimas Ventas
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-6">
+                                <div className="overflow-hidden rounded-lg border border-border">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow className="bg-muted">
+                                                <TableHead className="font-semibold text-foreground">Producto</TableHead>
+                                                <TableHead className="font-semibold text-foreground">Cantidad</TableHead>
+                                                <TableHead className="font-semibold text-foreground">Total</TableHead>
+                                                <TableHead className="font-semibold text-foreground">Fecha</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {mockRecentSales.map((sale) => ( // Mapea los datos de ejemplo [24]
+                                                <TableRow key={sale.id} className="hover:bg-muted/50 transition-colors">
+                                                    <TableCell className="font-medium text-foreground">
+                                                        {sale.product}
+                                                    </TableCell>
+                                                    <TableCell className="text-muted-foreground">
+                                                        {sale.quantity}
+                                                    </TableCell>
+                                                    <TableCell className="text-muted-foreground font-medium">
+                                                        {formatCurrency(sale.total)}
+                                                    </TableCell>
+                                                    <TableCell className="text-muted-foreground text-sm">
+                                                        {format(new Date(sale.date), "dd/MM/yyyy")}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }
